@@ -1,0 +1,25 @@
+{
+  "name": "vecmath",
+  "version": "1.0.0",
+  "description": "A vector mathematics package made of pure JavaScript",
+  "type": "module",
+  "main": "./src/index.js",
+  "exports": {
+    ".": "./src/index.js"
+  },
+  "scripts": {
+    "test": "mocha",
+    "test:coverage": "c8 --reporter=lcov --reporter=text mocha",
+    "lint": "eslint .",
+    "format": "prettier --write ."
+  },
+  "author": "Pindinz",
+  "license": "ISC",
+  "devDependencies": {
+    "c8": "^10.1.3",
+    "chai": "^6.2.0",
+    "eslint": "^9.37.0",
+    "mocha": "^11.7.4",
+    "prettier": "^3.6.2"
+  }
+}
