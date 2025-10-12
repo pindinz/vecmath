@@ -1,9 +1,9 @@
 // test/Matrix4x4.test.js
 import { expect } from 'chai';
-import { Matrix4x4 } from '../src/Matrix4x4.js';
-import { Vector3 } from '../src/Vector3.js';
-import { Vector4 } from '../src/Vector4.js';
-import { Quaternion } from '../src/Quaternion.js';
+import { Matrix4x4 } from '../src/matrix4x4.js';
+import { Vector3 } from '../src/vector3.js';
+import { Vector4 } from '../src/vector4.js';
+import { Quaternion } from '../src/quaternion.js';
 
 const EPSILON = 1e-5;
 
@@ -263,75 +263,122 @@ describe('Matrix4x4', () => {
   });
 
   describe('Matrix4x4 alias methods', () => {
-
     it('translate() alias should match fromTranslation', () => {
-        const v = new Vector3(1,2,3);
-        const m1 = new Matrix4x4().fromTranslation(v);
-        const m2 = new Matrix4x4().identity().translate(v);
-        expect(m2.equals(m1, EPSILON)).to.be.true;
+      const v = new Vector3(1, 2, 3);
+      const m1 = new Matrix4x4().fromTranslation(v);
+      const m2 = new Matrix4x4().identity().translate(v);
+      expect(m2.equals(m1, EPSILON)).to.be.true;
 
-        const out = m2.applyToVector3(new Vector3(0,0,0));
-        expect(out.x).to.be.closeTo(1, EPSILON);
-        expect(out.y).to.be.closeTo(2, EPSILON);
-        expect(out.z).to.be.closeTo(3, EPSILON);
+      const out = m2.applyToVector3(new Vector3(0, 0, 0));
+      expect(out.x).to.be.closeTo(1, EPSILON);
+      expect(out.y).to.be.closeTo(2, EPSILON);
+      expect(out.z).to.be.closeTo(3, EPSILON);
     });
 
     it('scale() alias should match fromScaling', () => {
-        const s = new Vector3(2,3,4);
-        const m1 = new Matrix4x4().fromScaling(s);
-        const m2 = new Matrix4x4().identity().scale(s);
-        expect(m2.equals(m1, EPSILON)).to.be.true;
+      const s = new Vector3(2, 3, 4);
+      const m1 = new Matrix4x4().fromScaling(s);
+      const m2 = new Matrix4x4().identity().scale(s);
+      expect(m2.equals(m1, EPSILON)).to.be.true;
 
-        const out = m2.applyToVector3(new Vector3(1,1,1));
-        expect(out.x).to.be.closeTo(2, EPSILON);
-        expect(out.y).to.be.closeTo(3, EPSILON);
-        expect(out.z).to.be.closeTo(4, EPSILON);
+      const out = m2.applyToVector3(new Vector3(1, 1, 1));
+      expect(out.x).to.be.closeTo(2, EPSILON);
+      expect(out.y).to.be.closeTo(3, EPSILON);
+      expect(out.z).to.be.closeTo(4, EPSILON);
     });
 
     it('rotateQuaternion() alias should match fromRotationQuaternion', () => {
-        const angle = Math.PI/2;
-        const s = Math.sin(angle/2);
-        const q = new Quaternion(0,0,s,Math.cos(angle/2));
-        const m1 = new Matrix4x4().fromRotationQuaternion(q);
-        const m2 = new Matrix4x4().identity().rotateQuaternion(q);
-        expect(m2.equals(m1, EPSILON)).to.be.true;
+      const angle = Math.PI / 2;
+      const s = Math.sin(angle / 2);
+      const q = new Quaternion(0, 0, s, Math.cos(angle / 2));
+      const m1 = new Matrix4x4().fromRotationQuaternion(q);
+      const m2 = new Matrix4x4().identity().rotateQuaternion(q);
+      expect(m2.equals(m1, EPSILON)).to.be.true;
 
-        const out = m2.applyToVector3(new Vector3(1,0,0));
-        expect(out.x).to.be.closeTo(0, EPSILON);
-        expect(out.y).to.be.closeTo(1, EPSILON);
-        expect(out.z).to.be.closeTo(0, EPSILON);
+      const out = m2.applyToVector3(new Vector3(1, 0, 0));
+      expect(out.x).to.be.closeTo(0, EPSILON);
+      expect(out.y).to.be.closeTo(1, EPSILON);
+      expect(out.z).to.be.closeTo(0, EPSILON);
     });
 
     it('lookAt() alias should match fromLookAt', () => {
-        const eye = new Vector3(0,0,0);
-        const target = new Vector3(0,0,-1);
-        const up = new Vector3(0,1,0);
+      const eye = new Vector3(0, 0, 0);
+      const target = new Vector3(0, 0, -1);
+      const up = new Vector3(0, 1, 0);
 
-        const m1 = new Matrix4x4().fromLookAt(eye,target,up);
-        const m2 = new Matrix4x4().identity().lookAt(eye,target,up);
-        expect(m2.equals(m1, EPSILON)).to.be.true;
+      const m1 = new Matrix4x4().fromLookAt(eye, target, up);
+      const m2 = new Matrix4x4().identity().lookAt(eye, target, up);
+      expect(m2.equals(m1, EPSILON)).to.be.true;
     });
 
     it('chaining multiple aliases', () => {
-        const eye = new Vector3(0,0,5);
-        const target = new Vector3(0,0,0);
-        const up = new Vector3(0,1,0);
-        const q = new Quaternion(0,0,Math.sin(Math.PI/4),Math.cos(Math.PI/4));
-        const s = new Vector3(2,2,2);
+      const eye = new Vector3(0, 0, 5);
+      const target = new Vector3(0, 0, 0);
+      const up = new Vector3(0, 1, 0);
+      const q = new Quaternion(
+        0,
+        0,
+        Math.sin(Math.PI / 4),
+        Math.cos(Math.PI / 4)
+      );
+      const s = new Vector3(2, 2, 2);
 
-        const m = new Matrix4x4().identity()
-            .translate(new Vector3(1,0,0))
-            .rotateQuaternion(q)
-            .scale(s)
-            .lookAt(eye,target,up);
+      const m = new Matrix4x4()
+        .identity()
+        .translate(new Vector3(1, 0, 0))
+        .rotateQuaternion(q)
+        .scale(s)
+        .lookAt(eye, target, up);
 
-        // Transform a point to ensure it's not NaN and still a valid matrix
-        const v = new Vector3(1,1,1);
-        const out = m.applyToVector3(v);
-        expect(isFinite(out.x)).to.be.true;
-        expect(isFinite(out.y)).to.be.true;
-        expect(isFinite(out.z)).to.be.true;
+      // Transform a point to ensure it's not NaN and still a valid matrix
+      const v = new Vector3(1, 1, 1);
+      const out = m.applyToVector3(v);
+      expect(isFinite(out.x)).to.be.true;
+      expect(isFinite(out.y)).to.be.true;
+      expect(isFinite(out.z)).to.be.true;
+    });
+  });
+
+  describe('Matrix4x4 setFromEuler', () => {
+    it('should create correct rotation matrix for Z rotation', () => {
+      const angle = Math.PI / 2;
+      const m = new Matrix4x4().identity().fromEuler(0, 0, angle);
+
+      const v = new Vector3(1, 0, 0);
+      const x = m.elements[0] * v.x + m.elements[4] * v.y + m.elements[8] * v.z;
+      const y = m.elements[1] * v.x + m.elements[5] * v.y + m.elements[9] * v.z;
+
+      expect(x).to.be.closeTo(0, EPSILON);
+      expect(y).to.be.closeTo(1, EPSILON);
     });
 
-});
+    it('should allow chaining with translation', () => {
+      const m = new Matrix4x4()
+        .identity()
+        .fromEuler(Math.PI / 4, 0, 0) // rotate 45° around X
+        .translate(new Vector3(1, 2, 3));
+
+      const v = new Vector3(0, 0, 0);
+      const x =
+        m.elements[0] * v.x +
+        m.elements[4] * v.y +
+        m.elements[8] * v.z +
+        m.elements[12];
+      const y =
+        m.elements[1] * v.x +
+        m.elements[5] * v.y +
+        m.elements[9] * v.z +
+        m.elements[13];
+      const z =
+        m.elements[2] * v.x +
+        m.elements[6] * v.y +
+        m.elements[10] * v.z +
+        m.elements[14];
+
+      const sqrt2over2 = Math.sqrt(2) / 2;
+      expect(x).to.be.closeTo(1, EPSILON);
+      expect(y).to.be.closeTo(2 * sqrt2over2 - 3 * sqrt2over2, EPSILON); // rotated y
+      expect(z).to.be.closeTo(2 * sqrt2over2 + 3 * sqrt2over2, EPSILON); // rotated z
+    });
+  });
 });

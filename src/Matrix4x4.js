@@ -1,7 +1,6 @@
 // src/Matrix4x4.js
-import { Vector3 } from './Vector3.js';
-import { Vector4 } from './Vector4.js';
-import { Quaternion } from './Quaternion.js';
+import { Vector3 } from './vector3.js';
+import { Vector4 } from './vector4.js';
 
 export class Matrix4x4 {
   constructor(
@@ -546,31 +545,6 @@ export class Matrix4x4 {
   }
 
   fromLookAt(eye, target, up) {
-    const z = new Vector3().copy(target).sub(eye).normalize(); // forward = target - eye
-    const x = new Vector3().copy(up).cross(z).normalize(); // right
-    const y = new Vector3().copy(z).cross(x); // true up
-
-    return this.set(
-      x.x,
-      y.x,
-      -z.x,
-      0,
-      x.y,
-      y.y,
-      -z.y,
-      0,
-      x.z,
-      y.z,
-      -z.z,
-      0,
-      -x.dot(eye),
-      -y.dot(eye),
-      z.dot(eye),
-      1
-    );
-  }
-
-  fromLookAt(eye, target, up) {
     const z = new Vector3().copy(eye).sub(target).normalize();
     const x = new Vector3().copy(up).cross(z).normalize();
     const y = new Vector3().copy(z).cross(x);
@@ -592,6 +566,51 @@ export class Matrix4x4 {
       0,
       1
     ).invert(); // LookAt matrix is inverse of camera transform
+  }
+
+  // Assumes Euler angles in radians, order XYZ
+  fromEuler(x, y, z) {
+    const cx = Math.cos(x),
+      sx = Math.sin(x);
+    const cy = Math.cos(y),
+      sy = Math.sin(y);
+    const cz = Math.cos(z),
+      sz = Math.sin(z);
+
+    // Rotation order: X -> Y -> Z
+    const m00 = cy * cz;
+    const m01 = -cy * sz;
+    const m02 = sy;
+    const m03 = 0;
+
+    const m10 = sx * sy * cz + cx * sz;
+    const m11 = -sx * sy * sz + cx * cz;
+    const m12 = -sx * cy;
+    const m13 = 0;
+
+    const m20 = -cx * sy * cz + sx * sz;
+    const m21 = cx * sy * sz + sx * cz;
+    const m22 = cx * cy;
+    const m23 = 0;
+
+    return this.set(
+      m00,
+      m01,
+      m02,
+      m03,
+      m10,
+      m11,
+      m12,
+      m13,
+      m20,
+      m21,
+      m22,
+      m23,
+      0,
+      0,
+      0,
+      1
+    );
   }
 
   static identity() {

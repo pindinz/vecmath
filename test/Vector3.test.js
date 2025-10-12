@@ -1,7 +1,7 @@
 // test/Vector3.test.js
 import { expect } from 'chai';
-import { Vector3 } from '../src/Vector3.js';
-import { Matrix4x4 } from '../src/Matrix4x4.js';
+import { Vector3 } from '../src/vector3.js';
+import { Matrix4x4 } from '../src/matrix4x4.js';
 
 const EPSILON = 1e-5;
 

@@ -1,5 +1,5 @@
 // src/Quaternion.js
-import { Vector3 } from './Vector3.js';
+import { Vector3 } from './vector3.js';
 
 export class Quaternion {
   constructor(x = 0, y = 0, z = 0, w = 1) {
@@ -141,7 +141,7 @@ export class Quaternion {
   }
 
   // --- Rotate a Vector3 ---
-  applyToVector3(v) {
+  rotateVector3(v) {
     const x = v.x,
       y = v.y,
       z = v.z;

@@ -1,6 +1,5 @@
 // src/Matrix3x3.js
-import { Vector3 } from './Vector3.js';
-import { Quaternion } from './Quaternion.js';
+import { Vector3 } from './vector3.js';
 
 export class Matrix3x3 {
   constructor() {
@@ -150,6 +149,22 @@ export class Matrix3x3 {
     return this;
   }
 
+  scale(v) {
+    return this.multiply(Matrix3x3.fromScaling(v));
+  }
+
+  rotateX(angle) {
+    return this.multiply(Matrix3x3.fromRotationX(angle));
+  }
+
+  rotateY(angle) {
+    return this.multiply(Matrix3x3.fromRotationY(angle));
+  }
+
+  rotateZ(angle) {
+    return this.multiply(Matrix3x3.fromRotationZ(angle));
+  }
+
   determinant() {
     const e = this.elements;
     return (
@@ -209,6 +224,31 @@ export class Matrix3x3 {
     return this.set(s.x, 0, 0, 0, s.y, 0, 0, 0, s.z);
   }
 
+  // Assumes Euler angles in radians, order XYZ
+  fromEuler(x, y, z) {
+    const cx = Math.cos(x),
+      sx = Math.sin(x);
+    const cy = Math.cos(y),
+      sy = Math.sin(y);
+    const cz = Math.cos(z),
+      sz = Math.sin(z);
+
+    // Rotation order: X -> Y -> Z
+    const m00 = cy * cz;
+    const m01 = -cy * sz;
+    const m02 = sy;
+
+    const m10 = sx * sy * cz + cx * sz;
+    const m11 = -sx * sy * sz + cx * cz;
+    const m12 = -sx * cy;
+
+    const m20 = -cx * sy * cz + sx * sz;
+    const m21 = cx * sy * sz + sx * cz;
+    const m22 = cx * cy;
+
+    return this.set(m00, m01, m02, m10, m11, m12, m20, m21, m22);
+  }
+
   fromNormalMatrix(matrix4x4) {
     // matrix4x4 is assumed to be column-major
     const me = matrix4x4.elements;
@@ -254,5 +294,23 @@ export class Matrix3x3 {
   }
   static fromScaling(s) {
     return new Matrix3x3().fromScaling(s);
+  }
+
+  static fromRotationX(theta) {
+    const c = Math.cos(theta),
+      s = Math.sin(theta);
+    return new Matrix3x3().set(1, 0, 0, 0, c, -s, 0, s, c);
+  }
+
+  static fromRotationY(theta) {
+    const c = Math.cos(theta),
+      s = Math.sin(theta);
+    return new Matrix3x3().set(c, 0, s, 0, 1, 0, -s, 0, c);
+  }
+
+  static fromRotationZ(theta) {
+    const c = Math.cos(theta),
+      s = Math.sin(theta);
+    return new Matrix3x3().set(c, -s, 0, s, c, 0, 0, 0, 1);
   }
 }
