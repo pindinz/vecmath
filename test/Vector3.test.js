@@ -32,10 +32,30 @@ describe('Vector3', () => {
     expect(v.z).to.equal(3);
   });
 
-  it('should setFromArray correctly', () => {
+  it('should copy correctly', () => {
+    const v = new Vector3(1, 2, 3);
+    const c = new Vector3();
+    c.copy(v);
+    v.set(1, 2, 3);
+    expect(c.x).to.equal(1);
+    expect(c.y).to.equal(2);
+    expect(c.z).to.equal(3);
+  });
+
+  it('should clone correctly', () => {
+    const v = new Vector3(1, 2, 3);
+    const c = v.clone();
+    c.copy(v);
+    v.set(1, 2, 3);
+    expect(c.x).to.equal(1);
+    expect(c.y).to.equal(2);
+    expect(c.z).to.equal(3);
+  });
+
+  it('should set fromArray correctly', () => {
     const arr = [1, 2, 3, 4, 5];
     const v = new Vector3();
-    v.setFromArray(arr, 1);
+    v.fromArray(arr, 1);
     expect(v.x).to.equal(2);
     expect(v.y).to.equal(3);
     expect(v.z).to.equal(4);

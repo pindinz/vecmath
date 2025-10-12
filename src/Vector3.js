@@ -147,7 +147,7 @@ export class Vector3 {
     return [this.x, this.y, this.z];
   }
 
-  setFromArray(arr, offset = 0) {
+  fromArray(arr, offset = 0) {
     this.elements[0] = arr[offset];
     this.elements[1] = arr[offset + 1];
     this.elements[2] = arr[offset + 2];

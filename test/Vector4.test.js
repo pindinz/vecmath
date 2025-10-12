@@ -15,6 +15,53 @@ describe('Vector4', () => {
     expect(v.w).to.equal(4);
   });
 
+  it('should initialize correctly with static constructors', () => {
+    expect(Vector4.zero().toArray()).to.deep.equal([0, 0, 0, 0]);
+    expect(Vector4.one().toArray()).to.deep.equal([1, 1, 1, 1]);
+    expect(Vector4.unitX().toArray()).to.deep.equal([1, 0, 0, 0]);
+    expect(Vector4.unitY().toArray()).to.deep.equal([0, 1, 0, 0]);
+    expect(Vector4.unitZ().toArray()).to.deep.equal([0, 0, 1, 0]);
+    expect(Vector4.unitW().toArray()).to.deep.equal([0, 0, 0, 1]);
+  });
+
+  it('should set correctly', () => {
+    const v = new Vector4();
+    v.set(1, 2, 3, 4);
+    expect(v.x).to.equal(1);
+    expect(v.y).to.equal(2);
+    expect(v.z).to.equal(3);
+    expect(v.w).to.equal(4);
+  });
+
+  it('should copy correctly', () => {
+    const v = new Vector4(1, 2, 3, 4);
+    const c = new Vector4();
+    c.copy(v);
+    expect(c.x).to.equal(1);
+    expect(c.y).to.equal(2);
+    expect(c.z).to.equal(3);
+    expect(c.w).to.equal(4);
+  });
+
+  it('should clone correctly', () => {
+    const v = new Vector4(1, 2, 3, 4);
+    const c = v.clone();
+    expect(c.x).to.equal(1);
+    expect(c.y).to.equal(2);
+    expect(c.z).to.equal(3);
+    expect(c.w).to.equal(4);
+  });
+
+  it('should set fromArray correctly', () => {
+    const v = new Vector4();
+    const arr = [1, 2, 3, 4, 5, 6];
+    v.fromArray(arr, 1);
+    expect(v.x).to.equal(2);
+    expect(v.y).to.equal(3);
+    expect(v.z).to.equal(4);
+    expect(v.w).to.equal(5);
+  });
+
   it('should add vectors', () => {
     const v1 = new Vector4(1, 2, 3, 4);
     const v2 = new Vector4(5, 6, 7, 8);
@@ -23,28 +70,26 @@ describe('Vector4', () => {
   });
 
   it('should compute dot product', () => {
-    const v1 = new Vector4(1, 0, 0, 0);
-    const v2 = new Vector4(0, 1, 0, 0);
-    expect(v1.dot(v2)).to.equal(0);
+    const v1 = new Vector4(1, 2, 3, 4);
+    const v2 = new Vector4(5, 6, 7, 8);
+    expect(v1.dot(v2)).to.equal(70);
   });
 
   it('should normalize correctly', () => {
-    const v = new Vector4(0, 0, 3, 4);
-    v.normalize();
-    const len = Math.sqrt(3 * 3 + 4 * 4);
-    expect(v.equals(new Vector4(0, 0, 3 / len, 4 / len))).to.be.true;
+    const v1 = new Vector4(1, 2, 3, 4);
+    v1.normalize();
+    const len = Math.hypot(1, 2, 3, 4);
+    expect(v1.equals(new Vector4(1 / len, 2 / len, 3 / len, 4 / len))).to.be
+      .true;
+    const v2 = new Vector4();
+    v2.normalize();
+    expect(v2.equals(new Vector4())).to.be.true;
   });
 
   it('should negate', () => {
     const v = new Vector4(1, -2, 3, -4);
     v.negate();
     expect(v.toArray()).to.deep.equal([-1, 2, -3, 4]);
-  });
-
-  it('should be chainable', () => {
-    const v = new Vector4(1, 2, 3, 4);
-    v.add(Vector4.one()).multiplyScalar(2);
-    expect(v.toArray()).to.deep.equal([4, 6, 8, 10]);
   });
 
   describe('Vector4 chainable operations', () => {
