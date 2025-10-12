@@ -13,6 +13,34 @@ describe('Vector3', () => {
     expect(v.z).to.equal(3);
   });
 
+  it('should initialize correctly with static constructors', () => {
+    expect(Vector3.zero().toArray()).to.deep.equal([0, 0, 0]);
+    expect(Vector3.one().toArray()).to.deep.equal([1, 1, 1]);
+    expect(Vector3.right().toArray()).to.deep.equal([1, 0, 0]);
+    expect(Vector3.left().toArray()).to.deep.equal([-1, 0, 0]);
+    expect(Vector3.up().toArray()).to.deep.equal([0, 0, 1]);
+    expect(Vector3.down().toArray()).to.deep.equal([0, 0, -1]);
+    expect(Vector3.forward().toArray()).to.deep.equal([0, 1, 0]);
+    expect(Vector3.backward().toArray()).to.deep.equal([0, -1, 0]);
+  });
+
+  it('should set correctly', () => {
+    const v = new Vector3();
+    v.set(1, 2, 3);
+    expect(v.x).to.equal(1);
+    expect(v.y).to.equal(2);
+    expect(v.z).to.equal(3);
+  });
+
+  it('should setFromArray correctly', () => {
+    const arr = [1, 2, 3, 4, 5];
+    const v = new Vector3();
+    v.setFromArray(arr, 1);
+    expect(v.x).to.equal(2);
+    expect(v.y).to.equal(3);
+    expect(v.z).to.equal(4);
+  });
+
   it('should add vectors', () => {
     const v1 = new Vector3(1, 2, 3);
     const v2 = new Vector3(4, 5, 6);
@@ -21,34 +49,34 @@ describe('Vector3', () => {
   });
 
   it('should compute dot product', () => {
-    const v1 = new Vector3(1, 0, 0);
-    const v2 = new Vector3(0, 1, 0);
-    expect(v1.dot(v2)).to.equal(0);
+    const v1 = new Vector3(1, 2, 3);
+    const v2 = new Vector3(4, 5, 6);
+    expect(v1.dot(v2)).to.equal(32);
   });
 
   it('should compute cross product', () => {
-    const v1 = new Vector3(1, 0, 0);
-    const v2 = new Vector3(0, 1, 0);
+    const v1 = new Vector3(1, 2, 3);
+    const v2 = new Vector3(4, 5, 6);
     v1.cross(v2);
-    expect(v1.toArray()).to.deep.equal([0, 0, 1]);
+    expect(v1.toArray()).to.deep.equal([-3, 6, -3]);
   });
 
   it('should normalize correctly', () => {
-    const v = new Vector3(3, 0, 0);
-    v.normalize();
-    expect(v.toArray()).to.deep.equal([1, 0, 0]);
+    const v1 = new Vector3(1, 2, 3);
+    const len = Math.hypot(1, 2, 3);
+    v1.normalize();
+    expect(v1.x).to.be.closeTo(1 / len, EPSILON);
+    expect(v1.y).to.be.closeTo(2 / len, EPSILON);
+    expect(v1.z).to.be.closeTo(3 / len, EPSILON);
+    const v2 = new Vector3();
+    v2.normalize();
+    expect(v2.toArray()).to.be.deep.equal([0, 0, 0]);
   });
 
   it('should return distance between vectors', () => {
-    const v1 = new Vector3(0, 0, 0);
-    const v2 = new Vector3(3, 4, 0);
-    expect(v1.distanceTo(v2)).to.equal(5);
-  });
-
-  it('should be chainable', () => {
-    const v = new Vector3(1, 2, 3);
-    v.add(Vector3.one()).multiplyScalar(2);
-    expect(v.toArray()).to.deep.equal([4, 6, 8]);
+    const v1 = new Vector3(1, 2, 3);
+    const v2 = new Vector3(2, 3, 4);
+    expect(v1.distanceTo(v2)).to.equal(Math.sqrt(3));
   });
 
   describe('Vector3 chainable operations', () => {
