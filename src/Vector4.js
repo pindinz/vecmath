@@ -1,4 +1,6 @@
-// src/Vector4.js
+/**
+ * Class representing a vector in 4D space (homogenous coordinates)
+ */
 export class Vector4 {
   constructor(x = 0, y = 0, z = 0, w = 1) {
     this.elements = new Float32Array([x, y, z, w]);

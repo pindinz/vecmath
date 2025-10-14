@@ -14,36 +14,163 @@ describe('Quaternion', () => {
     expect(q.w).to.equal(4);
   });
 
+  it('should set correctly', () => {
+    const q = new Quaternion();
+    q.set(1, 2, 3, 4);
+    expect(q.x).to.equal(1);
+    expect(q.y).to.equal(2);
+    expect(q.z).to.equal(3);
+    expect(q.w).to.equal(4);
+  });
+
+  it('should copy correctly', () => {
+    const q = new Quaternion().copy(new Quaternion(1, 2, 3, 4));
+    expect(q.x).to.equal(1);
+    expect(q.y).to.equal(2);
+    expect(q.z).to.equal(3);
+    expect(q.w).to.equal(4);
+  });
+
+  it('should set to identity', () => {
+    const q = new Quaternion().identity();
+    expect(q.x).to.equal(0);
+    expect(q.y).to.equal(0);
+    expect(q.z).to.equal(0);
+    expect(q.w).to.equal(1);
+  });
+
+  it('should have proper accessors', () => {
+    const q = new Quaternion();
+    q.x = 1;
+    q.y = 2;
+    q.z = 3;
+    q.w = 4;
+    expect(q.x).to.equal(1);
+    expect(q.y).to.equal(2);
+    expect(q.z).to.equal(3);
+    expect(q.w).to.equal(4);
+  });
+
   it('should normalize correctly', () => {
-    const q = new Quaternion(1, 2, 3, 4);
-    q.normalize();
-    const len = Math.sqrt(1 + 4 + 9 + 16);
-    expect(q.equals(new Quaternion(1 / len, 2 / len, 3 / len, 4 / len))).to.be
+    const q1 = new Quaternion(1, 2, 3, 4);
+    q1.normalize();
+    const len = Math.hypot(1, 2, 3, 4);
+    expect(q1.equals(new Quaternion(1 / len, 2 / len, 3 / len, 4 / len))).to.be
       .true;
+    const q2 = new Quaternion();
+    q2.normalize();
+    expect(q2.equals(new Quaternion())).to.be.true;
+  });
+
+  it('should invert correctly', () => {
+    const q = new Quaternion(1, 2, 3, 4);
+    q.invert();
+    expect(q.x).to.be.closeTo(-0.0333333333, EPSILON);
+    expect(q.y).to.be.closeTo(-0.0666666667, EPSILON);
+    expect(q.z).to.be.closeTo(-0.1, EPSILON);
+    expect(q.w).to.be.closeTo(0.13333333333, EPSILON);
   });
 
   it('should multiply quaternions', () => {
-    const q1 = new Quaternion(0, 0, 0, 1);
-    const q2 = Quaternion.fromAxisAngle(new Vector3(0, 1, 0), Math.PI / 2);
+    const q1 = new Quaternion(1, 2, 3, 4);
+    const q2 = new Quaternion(5, 6, 7, 8);
+    const q3 = new Quaternion().multiplyQuaternions(q1, q2);
     q1.multiply(q2);
-    expect(Math.abs(q1.length() - 1)).to.be.lessThan(1e-6);
+    expect(q1.equals(new Quaternion(24, 48, 48, -6))).to.be.true;
+    expect(q3.equals(new Quaternion(24, 48, 48, -6))).to.be.true;
   });
 
   it('should rotate a vector', () => {
-    const q = Quaternion.fromAxisAngle(new Vector3(0, 0, 1), Math.PI / 2);
-    const v = new Vector3(1, 0, 0);
-    q.rotateVector3(v);
-    expect(v.x).to.be.closeTo(0, 1e-6);
-    expect(v.y).to.be.closeTo(1, 1e-6);
-    expect(v.z).to.be.closeTo(0, 1e-6);
+    const q = Quaternion.fromAxisAngle(
+      new Vector3(1, 2, 3).normalize(),
+      Math.PI / 6
+    );
+    const v = q.rotateVector3(new Vector3(4, 5, 6));
+    expect(v.x).to.be.closeTo(3.3694374008, 1e-6);
+    expect(v.y).to.be.closeTo(5.7443660416, 1e-6);
+    expect(v.z).to.be.closeTo(5.7139435053, 1e-6);
   });
 
   it('should slerp between quaternions', () => {
     const q1 = Quaternion.identity();
-    const q2 = Quaternion.fromAxisAngle(new Vector3(0, 1, 0), Math.PI);
+    const q2 = Quaternion.fromAxisAngle(new Vector3(0, 1, 0), 1.5 * Math.PI);
     const q = q1.clone().slerp(q2, 0.5);
     const { angle } = q.toAxisAngle();
-    expect(angle).to.be.closeTo(Math.PI / 2, 1e-5);
+    expect(angle).to.be.closeTo(0.25 * Math.PI, 1e-5);
+  });
+
+  it('should lerp between quaternions for small angles', () => {
+    const q1 = Quaternion.identity();
+    const q2 = Quaternion.fromAxisAngle(new Vector3(0, 1, 0), 0.002);
+    const q = q1.clone().slerp(q2, 0.5);
+    const { angle } = q.toAxisAngle();
+    expect(angle).to.be.closeTo(0.001, 1e-4);
+  });
+
+  it('should return from slerp when the angle is 0', () => {
+    const q1 = Quaternion.identity();
+    const q2 = Quaternion.fromAxisAngle(new Vector3(0, 1, 0), 0);
+    const q = q1.clone().slerp(q2, 0.5);
+    const { angle } = q.toAxisAngle();
+    expect(angle).to.be.closeTo(0, 1e-5);
+  });
+
+  it('should initialize correctly from Euler angles', () => {
+    const q = Quaternion.fromEuler(Math.PI / 6, Math.PI / 4, Math.PI / 3);
+    expect(q.x).to.be.closeTo(0.391904, 1e-6);
+    expect(q.y).to.be.closeTo(0.200562, 1e-6);
+    expect(q.z).to.be.closeTo(0.531976, 1e-6);
+    expect(q.w).to.be.closeTo(0.723317, 1e-6);
+  });
+
+  it('should update correctly from an array with offset', () => {
+    const arr = [0, 1, 2, 3, 4, 5];
+    const q = new Quaternion().fromArray(arr, 1);
+    expect(q.x).to.equal(1);
+    expect(q.y).to.equal(2);
+    expect(q.z).to.equal(3);
+    expect(q.w).to.equal(4);
+  });
+
+  it('should return its values as an array correctly', () => {
+    const q = new Quaternion(1, 2, 3, 4);
+    const arr = q.toArray();
+    expect(arr).to.deep.equal([1, 2, 3, 4]);
+  });
+
+  it('should update correctly from an axis and angle', () => {
+    const q = new Quaternion().fromAxisAngle(
+      new Vector3(1, 2, 3).normalize(),
+      Math.PI / 3
+    );
+    expect(q.x).to.be.closeTo(0.1336306, 1e-6);
+    expect(q.y).to.be.closeTo(0.2672612, 1e-6);
+    expect(q.z).to.be.closeTo(0.4008919, 1e-6);
+    expect(q.w).to.be.closeTo(0.8660254, 1e-6);
+  });
+
+  it('should convert correctly to an axis and angle', () => {
+    const v = new Vector3(1, 2, 3).normalize();
+    const q = new Quaternion().fromAxisAngle(v, Math.PI / 3);
+    const { axis, angle } = q.toAxisAngle();
+    expect(axis.x).to.be.closeTo(v.x, 1e-6);
+    expect(axis.y).to.be.closeTo(v.y, 1e-6);
+    expect(axis.z).to.be.closeTo(v.z, 1e-6);
+    expect(angle).to.be.closeTo(Math.PI / 3, 1e-6);
+  });
+
+  it('should convert correctly to an axis and angle when w > 1', () => {
+    const v = new Vector3(1, 2, 3).normalize();
+    const q = new Quaternion().fromAxisAngle(v, 0);
+    q.x *= 1.000001;
+    q.y *= 1.000001;
+    q.z *= 1.000001;
+    q.w *= 1.000001;
+    const { axis, angle } = q.toAxisAngle();
+    expect(axis.x).to.equal(1);
+    expect(axis.y).to.equal(0);
+    expect(axis.z).to.equal(0);
+    expect(angle).to.equal(0);
   });
 
   describe('Quaternion chainable operations', () => {

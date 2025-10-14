@@ -1,12 +1,20 @@
-// src/Quaternion.js
 import { Vector3 } from './vector3.js';
 
+/**
+ * Class representing a quaternion
+ */
 export class Quaternion {
+  /**
+   * Create a quaternion
+   * @param {number} x
+   * @param {number} y
+   * @param {number} z
+   * @param {number} w
+   */
   constructor(x = 0, y = 0, z = 0, w = 1) {
     this.elements = new Float32Array([x, y, z, w]);
   }
 
-  // --- Accessors ---
   get x() {
     return this.elements[0];
   }
@@ -33,7 +41,14 @@ export class Quaternion {
     this.elements[3] = v;
   }
 
-  // --- Basic operations ---
+  /**
+   * Set the x, y, z, w values
+   * @param {number} x
+   * @param {number} y
+   * @param {number} z
+   * @param {number} w
+   * @returns {Quaternion}
+   */
   set(x, y, z, w) {
     const e = this.elements;
     e[0] = x;
@@ -43,19 +58,36 @@ export class Quaternion {
     return this;
   }
 
+  /**
+   * Copy the value of another Quaternion into this Quaternion
+   * @param {Quaternion} q
+   * @returns {Quaternion}
+   */
   copy(q) {
     this.elements.set(q.elements);
     return this;
   }
 
+  /**
+   * Create a clone of this Quaternion
+   * @returns {Quaternion}
+   */
   clone() {
     return new Quaternion(this.x, this.y, this.z, this.w);
   }
 
+  /**
+   * Set this Quaternion to identity [0, 0, 0, 1]
+   * @returns {Quaternion}
+   */
   identity() {
     return this.set(0, 0, 0, 1);
   }
 
+  /**
+   * Conjugate this Quaternion (negate the imaginary vector [x, y, z])
+   * @returns {Quaternion}
+   */
   conjugate() {
     this.elements[0] = -this.elements[0];
     this.elements[1] = -this.elements[1];
@@ -63,15 +95,28 @@ export class Quaternion {
     return this;
   }
 
+  /**
+   * Calculate the length squared of this Quaternion
+   * @returns {number}
+   */
   lengthSq() {
     const e = this.elements;
     return e[0] * e[0] + e[1] * e[1] + e[2] * e[2] + e[3] * e[3];
   }
 
+  /**
+   * Calculate the length of this Quaternion
+   * @returns {number}
+   */
   length() {
     return Math.sqrt(this.lengthSq());
   }
 
+  /**
+   * Normalize this Quaternion
+   * [0, 0, 0, 0] remaind unchanged
+   * @returns {Quaternion}
+   */
   normalize() {
     const len = this.length();
     if (len > 0) {
@@ -85,6 +130,11 @@ export class Quaternion {
     return this;
   }
 
+  /**
+   * Invert this Quaternion
+   * [0, 0, 0, 0] remains unchanged
+   * @returns {Quaternion}
+   */
   invert() {
     const e = this.elements;
     const lengthSq = this.lengthSq();
@@ -98,6 +148,11 @@ export class Quaternion {
     return this;
   }
 
+  /**
+   * Multiply this Quaternion by another Quaternion
+   * @param {Quaternion} q
+   * @returns {Quaternion}
+   */
   multiply(q) {
     const ae = this.elements;
     const be = q.elements;
@@ -118,6 +173,12 @@ export class Quaternion {
     return this;
   }
 
+  /**
+   * Set this Quaternion to the result of the multiplication of two Quaternions
+   * @param {Quaternion} a
+   * @param {Quaternion} b
+   * @returns {Quaternion}
+   */
   multiplyQuaternions(a, b) {
     // this = a * b
     const ae = a.elements;
@@ -140,7 +201,12 @@ export class Quaternion {
     return this;
   }
 
-  // --- Rotate a Vector3 ---
+  /**
+   * Rotate a Vector3 by the rotation defined by this Quaternion
+   * The Quaternion is expected to be normalized
+   * @param {Vector3} v
+   * @returns {Vector3}
+   */
   rotateVector3(v) {
     const x = v.x,
       y = v.y,
@@ -164,7 +230,14 @@ export class Quaternion {
     return v;
   }
 
-  // --- Interpolation ---
+  /**
+   * Interpolates this Quaternion with shortest, constant-angular-velocity rotation to another Quaternion
+   * SLERP: spherical linear interpolation
+   * Both Quaternions must be normalized
+   * @param {Quaternion} qb The other Quaternion (normalized)
+   * @param {number} t Ratio (0..1)
+   * @returns {Quaternion}
+   */
   slerp(qb, t) {
     const qa = this;
     const e = qa.elements;
@@ -187,11 +260,11 @@ export class Quaternion {
     const sinHalfTheta = Math.sqrt(1.0 - cosHalfTheta * cosHalfTheta);
 
     if (Math.abs(sinHalfTheta) < 0.001) {
-      e[0] = 0.5 * (e[0] + eb[0]);
-      e[1] = 0.5 * (e[1] + eb[1]);
-      e[2] = 0.5 * (e[2] + eb[2]);
-      e[3] = 0.5 * (e[3] + eb[3]);
-      return this;
+      e[0] = e[0] * (1 - t) + eb[0] * t;
+      e[1] = e[1] * (1 - t) + eb[1] * t;
+      e[2] = e[2] * (1 - t) + eb[2] * t;
+      e[3] = e[3] * (1 - t) + eb[3] * t;
+      return this.normalize();
     }
 
     const ratioA = Math.sin((1 - t) * halfTheta) / sinHalfTheta;
@@ -204,7 +277,13 @@ export class Quaternion {
     return this;
   }
 
-  // --- From / To Representations ---
+  /**
+   * Set this Quaternion to a rotation Quaternion defined by an axis vector and an angle
+   * The axis vector is expected to be normalized
+   * @param {Vector3} axis
+   * @param {number} angle in radians
+   * @returns {Quaternion}
+   */
   fromAxisAngle(axis, angle) {
     const half = angle * 0.5;
     const s = Math.sin(half);
@@ -262,13 +341,32 @@ export class Quaternion {
     );
   }
 
-  // --- Static constructors ---
+  /**
+   * Create a new identity Quaternion
+   * @returns {Quaternion}
+   */
   static identity() {
     return new Quaternion(0, 0, 0, 1);
   }
+
+  /**
+   * Create a new rotation Quaternion defined by an axis vector and an angle
+   * The axis vector is expected to be normalized
+   * @param {Vector3} axis
+   * @param {number} angle in radians
+   * @returns {Quaternion}
+   */
   static fromAxisAngle(axis, angle) {
     return new Quaternion().fromAxisAngle(axis, angle);
   }
+
+  /**
+   * Create a new rotation Quaternion from Euler angles
+   * @param {number} x
+   * @param {number} y
+   * @param {number} z
+   * @returns {Quaternion}
+   */
   static fromEuler(x, y, z) {
     return new Quaternion().fromEuler(x, y, z);
   }
