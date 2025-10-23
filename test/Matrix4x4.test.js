@@ -54,6 +54,95 @@ describe('Matrix4x4', () => {
     expect(m.equals(m2, EPSILON)).to.be.true;
   });
 
+  describe('Matrix4x4.determinant()', () => {
+    it('should return 1 for the identity matrix', () => {
+      const m = new Matrix4x4().identity();
+      expect(m.determinant()).to.be.closeTo(1, 1e-10);
+    });
+
+    it('should equal the product of scales for a pure scaling matrix', () => {
+      const scale = new Vector3(2, 3, 4);
+      const m = new Matrix4x4().identity().scale(scale);
+      expect(m.determinant()).to.be.closeTo(2 * 3 * 4, 1e-10);
+    });
+
+    it('should return -1 for a reflection (one negative scale axis)', () => {
+      const scale = new Vector3(-1, 1, 1);
+      const m = new Matrix4x4().identity().scale(scale);
+      expect(Math.sign(m.determinant())).to.equal(-1);
+      expect(Math.abs(m.determinant())).to.be.closeTo(1, 1e-10);
+    });
+
+    it('should return +1 for any pure rotation matrix', () => {
+      const q = Quaternion.fromAxisAngle(new Vector3(0, 1, 0), Math.PI / 4);
+      const m = new Matrix4x4().setFromRotationQuaternion(q);
+      expect(m.determinant()).to.be.closeTo(1, 1e-6);
+    });
+
+    it('should scale correctly after combining rotation and scale', () => {
+      const q = Quaternion.fromAxisAngle(new Vector3(1, 0, 0), Math.PI / 2);
+      const scale = new Vector3(2, 3, 4);
+      const m = new Matrix4x4().setFromRotationQuaternion(q).scale(scale);
+      expect(m.determinant()).to.be.closeTo(2 * 3 * 4, 1e-5);
+    });
+
+    it('should be negative if rotation is combined with reflection', () => {
+      const q = Quaternion.fromAxisAngle(new Vector3(0, 0, 1), Math.PI / 3);
+      const scale = new Vector3(-1, 1, 1);
+      const m = new Matrix4x4().setFromRotationQuaternion(q).scale(scale);
+      expect(Math.sign(m.determinant())).to.equal(-1);
+      expect(Math.abs(m.determinant())).to.be.closeTo(1, 1e-6);
+    });
+
+    it('should give zero for singular (degenerate) matrix with zero scale', () => {
+      const scale = new Vector3(0, 2, 3);
+      const m = new Matrix4x4().identity().scale(scale);
+      expect(m.determinant()).to.be.closeTo(0, 1e-10);
+    });
+
+    it('should match manual determinant computation for a known matrix', () => {
+      // From standard 4x4 example
+      const m = new Matrix4x4().set(
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11,
+        12,
+        13,
+        14,
+        15,
+        16
+      );
+      expect(m.determinant()).to.be.closeTo(0, 1e-10);
+    });
+
+    it('should handle translation without affecting determinant', () => {
+      const m = new Matrix4x4().identity().translate(new Vector3(5, 10, -2));
+      expect(m.determinant()).to.be.closeTo(1, 1e-10);
+    });
+
+    it('should compute the correct determinant for a random composed transform', () => {
+      const pos = new Vector3(2, -3, 5);
+      const q = Quaternion.fromAxisAngle(
+        new Vector3(1, 1, 1).normalize(),
+        Math.PI / 3
+      );
+      const scale = new Vector3(2, 0.5, -3);
+      const m = new Matrix4x4().compose(pos, q, scale);
+
+      // rotation has det = +1, so det = product of scales
+      const expected = 2 * 0.5 * -3;
+      expect(m.determinant()).to.be.closeTo(expected, 1e-6);
+    });
+  });
+
   it('should invert correctly', () => {
     const m = new Matrix4x4();
     m.set(4, 7, 2, 3, 0, 5, 9, 1, 6, 8, 1, 2, 3, 0, 4, 5);
@@ -126,7 +215,7 @@ describe('Matrix4x4', () => {
   describe('Matrix4x4 convenience constructors', () => {
     it('should create translation matrix', () => {
       const t = new Vector3(1, 2, 3);
-      const m = new Matrix4x4().fromTranslation(t);
+      const m = new Matrix4x4().setFromTranslation(t);
       const v = new Vector3(0, 0, 0);
       const out = m.applyToVector3(v);
       expect(out.x).to.be.closeTo(1, EPSILON);
@@ -136,7 +225,7 @@ describe('Matrix4x4', () => {
 
     it('should create scaling matrix', () => {
       const s = new Vector3(2, 3, 4);
-      const m = new Matrix4x4().fromScaling(s);
+      const m = new Matrix4x4().setFromScaling(s);
       const v = new Vector3(1, 1, 1);
       const out = m.applyToVector3(v);
       expect(out.x).to.be.closeTo(2, EPSILON);
@@ -149,7 +238,7 @@ describe('Matrix4x4', () => {
       const axis = new Vector3(0, 0, 1);
       const s = Math.sin(angle / 2);
       const q = new Quaternion(0, 0, s, Math.cos(angle / 2));
-      const m = new Matrix4x4().fromRotationQuaternion(q);
+      const m = new Matrix4x4().setFromRotationQuaternion(q);
       const v = new Vector3(1, 0, 0);
       const out = m.applyToVector3(v);
       expect(out.x).to.be.closeTo(0, EPSILON);
@@ -162,21 +251,22 @@ describe('Matrix4x4', () => {
       const aspect = 1;
       const near = 1;
       const far = 100;
-      const m = new Matrix4x4().fromPerspective(fov, aspect, near, far);
+      const m = new Matrix4x4().setFromPerspective(fov, aspect, near, far);
       expect(m.elements[0]).to.be.closeTo(1, EPSILON);
       expect(m.elements[5]).to.be.closeTo(1, EPSILON);
       expect(m.elements[10]).to.be.closeTo(
-        -(far + near) / (far - near),
+        (far + near) / (far - near),
         EPSILON
       );
-      expect(m.elements[14]).to.be.closeTo(
-        (-2 * far * near) / (far - near),
+      expect(m.elements[11]).to.be.closeTo(
+        (2 * far * near) / (far - near),
         EPSILON
       );
+      expect(m.elements[14]).to.be.equal(-1);
     });
 
     it('should create orthographic projection', () => {
-      const m = new Matrix4x4().fromOrtho(-1, 1, -1, 1, 1, 100);
+      const m = new Matrix4x4().setFromOrtho(-1, 1, -1, 1, 1, 100);
       expect(m.elements[0]).to.be.closeTo(1, EPSILON);
       expect(m.elements[5]).to.be.closeTo(1, EPSILON);
       expect(m.elements[10]).to.be.closeTo(-2 / 99, EPSILON);
@@ -187,7 +277,7 @@ describe('Matrix4x4', () => {
       const eye = new Vector3(0, 0, 0);
       const target = new Vector3(0, 0, -1);
       const up = new Vector3(0, 1, 0);
-      const m = new Matrix4x4().fromLookAt(eye, target, up);
+      const m = new Matrix4x4().setFromLookAt(eye, target, up);
 
       // Forward vector should point to -Z
       const forward = new Vector3(0, 0, -1);
@@ -214,9 +304,9 @@ describe('Matrix4x4', () => {
       const scale = new Vector3(2, 3, 4);
 
       const m = new Matrix4x4()
-        .fromTranslation(translation)
-        .multiply(new Matrix4x4().fromScaling(scale))
-        .multiply(new Matrix4x4().fromRotationQuaternion(rotation));
+        .setFromTranslation(translation)
+        .multiply(new Matrix4x4().setFromScaling(scale))
+        .multiply(new Matrix4x4().setFromRotationQuaternion(rotation));
 
       // Test a point at origin
       const v = new Vector3(1, 0, 0);
@@ -233,13 +323,13 @@ describe('Matrix4x4', () => {
 
     it('should chain invert after multiple transforms', () => {
       const m = new Matrix4x4()
-        .fromTranslation(new Vector3(1, 2, 3))
+        .setFromTranslation(new Vector3(1, 2, 3))
         .multiply(
-          new Matrix4x4().fromRotationQuaternion(
+          new Matrix4x4().setFromRotationQuaternion(
             new Quaternion(0, 0, Math.sin(Math.PI / 4), Math.cos(Math.PI / 4))
           )
         )
-        .multiply(new Matrix4x4().fromScaling(new Vector3(2, 3, 4)));
+        .multiply(new Matrix4x4().setFromScaling(new Vector3(2, 3, 4)));
 
       const mInv = m.clone().invert();
 
@@ -253,7 +343,7 @@ describe('Matrix4x4', () => {
       const m = new Matrix4x4();
       m.identity()
         .translate(new Vector3(1, 2, 3)) // let's add a translate() method alias
-        .multiply(new Matrix4x4().fromScaling(new Vector3(2, 2, 2)))
+        .multiply(new Matrix4x4().setFromScaling(new Vector3(2, 2, 2)))
         .transpose()
         .invert();
 
@@ -265,7 +355,7 @@ describe('Matrix4x4', () => {
   describe('Matrix4x4 alias methods', () => {
     it('translate() alias should match fromTranslation', () => {
       const v = new Vector3(1, 2, 3);
-      const m1 = new Matrix4x4().fromTranslation(v);
+      const m1 = new Matrix4x4().setFromTranslation(v);
       const m2 = new Matrix4x4().identity().translate(v);
       expect(m2.equals(m1, EPSILON)).to.be.true;
 
@@ -277,7 +367,7 @@ describe('Matrix4x4', () => {
 
     it('scale() alias should match fromScaling', () => {
       const s = new Vector3(2, 3, 4);
-      const m1 = new Matrix4x4().fromScaling(s);
+      const m1 = new Matrix4x4().setFromScaling(s);
       const m2 = new Matrix4x4().identity().scale(s);
       expect(m2.equals(m1, EPSILON)).to.be.true;
 
@@ -291,7 +381,7 @@ describe('Matrix4x4', () => {
       const angle = Math.PI / 2;
       const s = Math.sin(angle / 2);
       const q = new Quaternion(0, 0, s, Math.cos(angle / 2));
-      const m1 = new Matrix4x4().fromRotationQuaternion(q);
+      const m1 = new Matrix4x4().setFromRotationQuaternion(q);
       const m2 = new Matrix4x4().identity().rotateQuaternion(q);
       expect(m2.equals(m1, EPSILON)).to.be.true;
 
@@ -306,7 +396,7 @@ describe('Matrix4x4', () => {
       const target = new Vector3(0, 0, -1);
       const up = new Vector3(0, 1, 0);
 
-      const m1 = new Matrix4x4().fromLookAt(eye, target, up);
+      const m1 = new Matrix4x4().setFromLookAt(eye, target, up);
       const m2 = new Matrix4x4().identity().lookAt(eye, target, up);
       expect(m2.equals(m1, EPSILON)).to.be.true;
     });
@@ -342,7 +432,7 @@ describe('Matrix4x4', () => {
   describe('Matrix4x4 setFromEuler', () => {
     it('should create correct rotation matrix for Z rotation', () => {
       const angle = Math.PI / 2;
-      const m = new Matrix4x4().identity().fromEuler(0, 0, angle);
+      const m = new Matrix4x4().identity().setFromEuler(0, 0, angle);
 
       const v = new Vector3(1, 0, 0);
       const x = m.elements[0] * v.x + m.elements[4] * v.y + m.elements[8] * v.z;
@@ -355,7 +445,7 @@ describe('Matrix4x4', () => {
     it('should allow chaining with translation', () => {
       const m = new Matrix4x4()
         .identity()
-        .fromEuler(Math.PI / 4, 0, 0) // rotate 45° around X
+        .setFromEuler(Math.PI / 4, 0, 0) // rotate 45° around X
         .translate(new Vector3(1, 2, 3));
 
       const v = new Vector3(0, 0, 0);
@@ -379,6 +469,173 @@ describe('Matrix4x4', () => {
       expect(x).to.be.closeTo(1, EPSILON);
       expect(y).to.be.closeTo(2 * sqrt2over2 - 3 * sqrt2over2, EPSILON); // rotated y
       expect(z).to.be.closeTo(2 * sqrt2over2 + 3 * sqrt2over2, EPSILON); // rotated z
+    });
+  });
+
+  describe('compose() / decompose()', () => {
+    it('should round-trip compose → decompose → compose for simple transforms', () => {
+      const position = new Vector3(1, 2, 3);
+      const quaternion = Quaternion.fromAxisAngle(
+        new Vector3(0, 1, 0),
+        Math.PI / 4
+      );
+      const scale = new Vector3(2, 3, 4);
+
+      const m1 = new Matrix4x4().compose(position, quaternion, scale);
+      const p2 = new Vector3(),
+        q2 = new Quaternion(),
+        s2 = new Vector3();
+      m1.decompose(p2, q2, s2);
+
+      expect(p2.equals(position, 1e-6)).to.be.true;
+      expect(q2.equals(quaternion, 1e-6)).to.be.true;
+      expect(s2.equals(scale, 1e-6)).to.be.true;
+
+      const m2 = new Matrix4x4().compose(p2, q2, s2);
+      for (let i = 0; i < 16; i++) {
+        expect(m2.elements[i]).to.be.closeTo(m1.elements[i], 1e-6);
+      }
+    });
+
+    it('should handle negative scale (mirroring) correctly', () => {
+      const position = new Vector3(0, 0, 0);
+      const quaternion = Quaternion.fromAxisAngle(
+        new Vector3(0, 0, 1),
+        Math.PI / 2
+      );
+      const scale = new Vector3(-1, 1, 1);
+
+      const m = new Matrix4x4().compose(position, quaternion, scale);
+
+      const det = m.determinant();
+      expect(Math.sign(det)).to.equal(-1); // reflection (mirroring)
+    });
+
+    it('should decompose a mirrored matrix and preserve negative scale', () => {
+      const position = new Vector3(5, -2, 1);
+      const quaternion = Quaternion.fromAxisAngle(
+        new Vector3(1, 0, 0),
+        Math.PI / 3
+      );
+      const scale = new Vector3(1, -2, 3);
+
+      const m = new Matrix4x4().compose(position, quaternion, scale);
+      const p2 = new Vector3(),
+        q2 = new Quaternion(),
+        s2 = new Vector3();
+      m.decompose(p2, q2, s2);
+
+      expect(p2.equals(position, 1e-6)).to.be.true;
+      expect(Math.sign(s2.x)).to.equal(Math.sign(scale.x));
+      expect(Math.sign(s2.y)).to.equal(Math.sign(scale.y));
+      expect(Math.sign(s2.z)).to.equal(Math.sign(scale.z));
+    });
+
+    it('should recover the original quaternion from rotation matrix', () => {
+      const q = Quaternion.fromAxisAngle(new Vector3(1, 0, 0), Math.PI / 3);
+      const m = new Matrix4x4().setFromRotationQuaternion(q);
+
+      const q2 = new Quaternion().fromRotationMatrix(m);
+
+      expect(q2.equals(q, 1e-6) || q2.equals(q.clone().negate(), 1e-6)).to.be
+        .true;
+      // quaternions q and -q represent the same rotation
+    });
+
+    it('should work correctly with identity transform', () => {
+      const position = new Vector3(0, 0, 0);
+      const quaternion = new Quaternion(0, 0, 0, 1);
+      const scale = new Vector3(1, 1, 1);
+
+      const m = new Matrix4x4().compose(position, quaternion, scale);
+      const p2 = new Vector3(),
+        q2 = new Quaternion(),
+        s2 = new Vector3();
+      m.decompose(p2, q2, s2);
+
+      expect(p2.equals(position)).to.be.true;
+      expect(q2.equals(quaternion)).to.be.true;
+      expect(s2.equals(scale)).to.be.true;
+    });
+
+    it('should handle zero scale components gracefully', () => {
+      const position = new Vector3(1, 2, 3);
+      const quaternion = new Quaternion().fromAxisAngle(
+        new Vector3(0, 0, 1),
+        Math.PI / 4
+      );
+      const scale = new Vector3(0, 2, 1);
+
+      const m = new Matrix4x4().compose(position, quaternion, scale);
+      const p2 = new Vector3(),
+        q2 = new Quaternion(),
+        s2 = new Vector3();
+      m.decompose(p2, q2, s2);
+
+      expect(p2.equals(position, 1e-6)).to.be.true;
+      expect(s2.equals(scale, 1e-6)).to.be.true;
+    });
+  });
+
+  describe('Matrix4x4 compose() / decompose() mirrored transforms', () => {
+    function checkDecomposition(position, quaternion, scale) {
+      const m = new Matrix4x4().compose(position, quaternion, scale);
+      const p2 = new Vector3(),
+        q2 = new Quaternion(),
+        s2 = new Vector3();
+      m.decompose(p2, q2, s2);
+
+      // Translation must match
+      expect(p2.equals(position, 1e-6)).to.be.true;
+
+      // Rotation: ensure quaternion roughly matches
+      // (sign of quaternion can flip without changing rotation)
+      const qDot = q2.dot(quaternion);
+      expect(Math.abs(qDot)).to.be.closeTo(1, 1e-5);
+
+      // Scale signs and magnitudes must match
+      expect(Math.sign(s2.x)).to.equal(Math.sign(scale.x));
+      expect(Math.sign(s2.y)).to.equal(Math.sign(scale.y));
+      expect(Math.sign(s2.z)).to.equal(Math.sign(scale.z));
+      expect(Math.abs(s2.x)).to.be.closeTo(Math.abs(scale.x), 1e-6);
+      expect(Math.abs(s2.y)).to.be.closeTo(Math.abs(scale.y), 1e-6);
+      expect(Math.abs(s2.z)).to.be.closeTo(Math.abs(scale.z), 1e-6);
+    }
+
+    const rotation = Quaternion.fromAxisAngle(
+      new Vector3(1, 1, 0).normalize(),
+      Math.PI / 4
+    );
+    const position = new Vector3(2, -3, 5);
+
+    it('should decompose a non-mirrored matrix correctly', () => {
+      checkDecomposition(position, rotation, new Vector3(1, 2, 3));
+    });
+
+    it('should decompose a matrix mirrored along X', () => {
+      checkDecomposition(position, rotation, new Vector3(-1, 2, 3));
+    });
+
+    it('should decompose a matrix mirrored along Y', () => {
+      checkDecomposition(position, rotation, new Vector3(1, -2, 3));
+    });
+
+    it('should decompose a matrix mirrored along Z', () => {
+      checkDecomposition(position, rotation, new Vector3(1, 2, -3));
+    });
+
+    it('should decompose a matrix mirrored along X and Y', () => {
+      checkDecomposition(position, rotation, new Vector3(-1, -2, 3));
+    });
+
+    it('should decompose a matrix mirrored along Y and Z', () => {
+      checkDecomposition(position, rotation, new Vector3(1, -2, -3));
+    });
+
+    it('should decompose a matrix mirrored along all three axes (double inversion)', () => {
+      // This is technically not mirrored (two inversions restore handedness),
+      // but we include it for completeness.
+      checkDecomposition(position, rotation, new Vector3(-1, -2, -3));
     });
   });
 });

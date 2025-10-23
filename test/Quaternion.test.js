@@ -125,7 +125,7 @@ describe('Quaternion', () => {
 
   it('should update correctly from an array with offset', () => {
     const arr = [0, 1, 2, 3, 4, 5];
-    const q = new Quaternion().fromArray(arr, 1);
+    const q = new Quaternion().setFromArray(arr, 1);
     expect(q.x).to.equal(1);
     expect(q.y).to.equal(2);
     expect(q.z).to.equal(3);
@@ -139,7 +139,7 @@ describe('Quaternion', () => {
   });
 
   it('should update correctly from an axis and angle', () => {
-    const q = new Quaternion().fromAxisAngle(
+    const q = Quaternion.fromAxisAngle(
       new Vector3(1, 2, 3).normalize(),
       Math.PI / 3
     );
@@ -151,7 +151,7 @@ describe('Quaternion', () => {
 
   it('should convert correctly to an axis and angle', () => {
     const v = new Vector3(1, 2, 3).normalize();
-    const q = new Quaternion().fromAxisAngle(v, Math.PI / 3);
+    const q = Quaternion.fromAxisAngle(v, Math.PI / 3);
     const { axis, angle } = q.toAxisAngle();
     expect(axis.x).to.be.closeTo(v.x, 1e-6);
     expect(axis.y).to.be.closeTo(v.y, 1e-6);
@@ -161,7 +161,7 @@ describe('Quaternion', () => {
 
   it('should convert correctly to an axis and angle when w > 1', () => {
     const v = new Vector3(1, 2, 3).normalize();
-    const q = new Quaternion().fromAxisAngle(v, 0);
+    const q = Quaternion.fromAxisAngle(v, 0);
     q.x *= 1.000001;
     q.y *= 1.000001;
     q.z *= 1.000001;

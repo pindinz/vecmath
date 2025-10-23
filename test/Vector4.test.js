@@ -121,7 +121,7 @@ describe('Vector4', () => {
 
     it('should applyMatrix4 correctly', () => {
       const v = new Vector4(1, 1, 1, 1);
-      const m = new Matrix4x4().fromTranslation(new Vector3(1, 2, 3));
+      const m = new Matrix4x4().setFromTranslation(new Vector3(1, 2, 3));
       v.applyMatrix4(m);
       expect(v.equals(new Vector4(2, 3, 4, 1), EPSILON)).to.be.true;
     });

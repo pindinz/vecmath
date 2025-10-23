@@ -1,15 +1,27 @@
-// src/Matrix3x3.js
 import { Vector3 } from './vector3.js';
 
+/**
+ * Class representing a 3x3 matrix
+ * The elements are stored in a Float32Array in column-major order
+ */
 export class Matrix3x3 {
+  /**
+   * Create a new Matrix3x3 and set it to identity
+   * 1 0 0
+   * 0 1 0
+   * 0 0 1
+   */
   constructor() {
     this.elements = new Float32Array(9);
     this.identity();
   }
 
-  // --- Core setup ---
   /**
+   * Set the elements of this Matrix3x3
    * The parameters are in row-major order.
+   * n11 n12 n13
+   * n21 n22 n23
+   * n31 n32 n33
    * @param {number} n11
    * @param {number} n12
    * @param {number} n13
@@ -36,26 +48,52 @@ export class Matrix3x3 {
     return this;
   }
 
+  /**
+   * Set this Matrix3x3 to identity
+   * 1 0 0
+   * 0 1 0
+   * 0 0 1
+   * @returns {Matrix3x3}
+   */
   identity() {
     return this.set(1, 0, 0, 0, 1, 0, 0, 0, 1);
   }
 
+  /**
+   * Copy the values of anoter Matrix3x3 into this Matrix3x3
+   * @param {Matrix3x3} m
+   * @returns {Matrix3x3}
+   */
   copy(m) {
     this.elements.set(m.elements);
     return this;
   }
 
+  /**
+   * Create a clone of this Matrix3x3
+   * @returns {Matrix3x3}
+   */
   clone() {
     const m = new Matrix3x3();
     m.copy(this);
     return m;
   }
 
-  // --- Basic arithmetic ---
+  /**
+   * Multiply this Matrix3x3 with another Matrix3x3
+   * @param {Matrix3x3} m
+   * @returns {Matrix3x3}
+   */
   multiply(m) {
     return this.multiplyMatrices(this, m);
   }
 
+  /**
+   * Multiply 2 Matrix3x3 and set the result to this Matrix3x3
+   * @param {Matrix3x3} a
+   * @param {Matrix3x3} b
+   * @returns {Matrix3x3}
+   */
   multiplyMatrices(a, b) {
     const ae = a.elements,
       be = b.elements,
@@ -96,11 +134,14 @@ export class Matrix3x3 {
     return this;
   }
 
+  /**
+   * Transpose this Matrix3x3 (swap off-diagonal elements)
+   * @returns {Matrix3x3}
+   */
   transpose() {
     const e = this.elements;
     let tmp;
 
-    // swap off-diagonal elements
     tmp = e[1];
     e[1] = e[3];
     e[3] = tmp; // e[1]=m10, e[3]=m01
@@ -114,6 +155,10 @@ export class Matrix3x3 {
     return this;
   }
 
+  /**
+   * Invert this Matrix3x3
+   * @returns {Matrix3x3}
+   */
   invert() {
     const e = this.elements;
     const a00 = e[0],
@@ -220,6 +265,14 @@ export class Matrix3x3 {
     );
   }
 
+  /**
+   * Set this Matrix3x3 from a scaling Vector3
+   * s.x   0   0
+   *   0 s.y   0
+   *   0   0 s.z
+   * @param {Vector3} s
+   * @returns {Matrix3x3}
+   */
   fromScaling(s) {
     return this.set(s.x, 0, 0, 0, s.y, 0, 0, 0, s.z);
   }

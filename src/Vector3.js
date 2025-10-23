@@ -10,6 +10,7 @@ export class Vector3 {
    */
   constructor(x = 0, y = 0, z = 0) {
     this.elements = new Float32Array([x, y, z]);
+    this._onChange = null;
   }
 
   get x() {
@@ -24,12 +25,15 @@ export class Vector3 {
 
   set x(v) {
     this.elements[0] = v;
+    this._onChange?.();
   }
   set y(v) {
     this.elements[1] = v;
+    this._onChange?.();
   }
   set z(v) {
     this.elements[2] = v;
+    this._onChange?.();
   }
 
   /**
@@ -43,6 +47,12 @@ export class Vector3 {
     this.elements[0] = x;
     this.elements[1] = y;
     this.elements[2] = z;
+    this._onChange?.();
+    return this;
+  }
+
+  onChange(callback) {
+    this._onChange = callback;
     return this;
   }
 
@@ -53,6 +63,7 @@ export class Vector3 {
    */
   copy(v) {
     this.elements.set(v.elements);
+    this._onChange?.();
     return this;
   }
 
@@ -71,9 +82,28 @@ export class Vector3 {
    * @returns {Vector3}
    */
   add(v) {
-    this.elements[0] += v.elements[0];
-    this.elements[1] += v.elements[1];
-    this.elements[2] += v.elements[2];
+    const e = this.elements,
+      f = v.elements;
+    e[0] += f[0];
+    e[1] += f[1];
+    e[2] += f[2];
+    this._onChange?.();
+    return this;
+  }
+
+  /**
+   * Add another scaled Vector3 to this Vector3
+   * @param {Vector3} v
+   * @param {number} s
+   * @returns {Vector3}
+   */
+  addScaledVector(v, s) {
+    const e = this.elements,
+      f = v.elements;
+    e[0] += f[0] * s;
+    e[1] += f[1] * s;
+    e[2] += f[2] * s;
+    this._onChange?.();
     return this;
   }
 
@@ -84,9 +114,12 @@ export class Vector3 {
    * @returns {Vector3}
    */
   sub(v) {
-    this.elements[0] -= v.elements[0];
-    this.elements[1] -= v.elements[1];
-    this.elements[2] -= v.elements[2];
+    const e = this.elements,
+      f = v.elements;
+    e[0] -= f[0];
+    e[1] -= f[1];
+    e[2] -= f[2];
+    this._onChange?.();
     return this;
   }
 
@@ -97,9 +130,11 @@ export class Vector3 {
    * @returns {Vector3}
    */
   multiplyScalar(s) {
-    this.elements[0] *= s;
-    this.elements[1] *= s;
-    this.elements[2] *= s;
+    const e = this.elements;
+    e[0] *= s;
+    e[1] *= s;
+    e[2] *= s;
+    this._onChange?.();
     return this;
   }
 
@@ -108,13 +143,15 @@ export class Vector3 {
    * 1/s * v
    * @param {Vector3} s
    * @returns {Vector3}
+   * @throws {RangeError} when trying to divide by zero
    */
   divideScalar(s) {
-    const inv = 1 / s;
-    this.elements[0] *= inv;
-    this.elements[1] *= inv;
-    this.elements[2] *= inv;
-    return this;
+    if (s !== 0) {
+      return this.multiplyScalar(1 / s);
+    } else {
+      console.error('Vector3.divideScalar: division by zero');
+      return undefined;
+    }
   }
 
   /**
@@ -124,8 +161,8 @@ export class Vector3 {
    * @returns {number}
    */
   dot(v) {
-    const e = this.elements;
-    const f = v.elements;
+    const e = this.elements,
+      f = v.elements;
     return e[0] * f[0] + e[1] * f[1] + e[2] * f[2];
   }
 
@@ -145,6 +182,27 @@ export class Vector3 {
     this.elements[0] = ay * bz - az * by;
     this.elements[1] = az * bx - ax * bz;
     this.elements[2] = ax * by - ay * bx;
+    this._onChange?.();
+    return this;
+  }
+
+  /**
+   * Set this Vector3 to the cross product of two Vector3s.
+   * @param {Vector3} a
+   * @param {Vector3} b
+   * @returns {Vector3}
+   */
+  crossProduct(a, b) {
+    const ax = a.x,
+      ay = a.y,
+      az = a.z;
+    const bx = b.x,
+      by = b.y,
+      bz = b.z;
+    this.elements[0] = ay * bz - az * by;
+    this.elements[1] = az * bx - ax * bz;
+    this.elements[2] = ax * by - ay * bx;
+    this._onChange?.();
     return this;
   }
 
@@ -172,7 +230,9 @@ export class Vector3 {
    */
   normalize() {
     const len = this.length();
-    if (len > 0) this.divideScalar(len);
+    if (len > 0) {
+      this.divideScalar(len);
+    }
     return this;
   }
 
@@ -202,26 +262,30 @@ export class Vector3 {
    * @returns {Vector3}
    */
   negate() {
-    this.elements[0] = -this.elements[0];
-    this.elements[1] = -this.elements[1];
-    this.elements[2] = -this.elements[2];
+    const e = this.elements;
+    e[0] = -e[0];
+    e[1] = -e[1];
+    e[2] = -e[2];
+    this._onChange?.();
     return this;
   }
 
   /**
    * Transform this Vector3 using a Matrix4x4
    * @param {Matrix4x4} m
+   * @param {boolean} divideW divide by w (optional, default = false)
    * @returns {Vector3}
    */
-  applyMatrix4(m) {
+  applyMatrix4(m, divideW = false) {
     const e = m.elements;
     const x = this.x,
       y = this.y,
       z = this.z;
-    const w = 1 / (e[3] * x + e[7] * y + e[11] * z + e[15]);
-    this.x = (e[0] * x + e[4] * y + e[8] * z + e[12]) * w;
-    this.y = (e[1] * x + e[5] * y + e[9] * z + e[13]) * w;
-    this.z = (e[2] * x + e[6] * y + e[10] * z + e[14]) * w;
+    const w = divideW ? 1 / (e[3] * x + e[7] * y + e[11] * z + e[15]) : 1;
+    this.elements[0] = (e[0] * x + e[4] * y + e[8] * z + e[12]) * w;
+    this.elements[1] = (e[1] * x + e[5] * y + e[9] * z + e[13]) * w;
+    this.elements[2] = (e[2] * x + e[6] * y + e[10] * z + e[14]) * w;
+    this._onChange?.();
     return this;
   }
 
@@ -253,10 +317,11 @@ export class Vector3 {
    * @param {number} offset (optional, default = 0)
    * @returns
    */
-  fromArray(arr, offset = 0) {
+  setFromArray(arr, offset = 0) {
     this.elements[0] = arr[offset];
     this.elements[1] = arr[offset + 1];
     this.elements[2] = arr[offset + 2];
+    this._onChange?.();
     return this;
   }
 

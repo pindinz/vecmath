@@ -1,7 +1,11 @@
-// src/Matrix4x4.js
+import { Quaternion } from './quaternion.js';
 import { Vector3 } from './vector3.js';
 import { Vector4 } from './vector4.js';
 
+/**
+ * Class representing a 4x4 matrix
+ * The elements are stored in a Float32Array in column-major order
+ */
 export class Matrix4x4 {
   constructor(
     n11 = 1,
@@ -42,9 +46,30 @@ export class Matrix4x4 {
     );
   }
 
-  // --- Core setters ---
   /**
-   * Sets matrix elements. Accepts row-major input.
+   * Set the elements of this Matrix4x4
+   * The parameters are in row-major order.
+   * n11 n12 n13 n14
+   * n21 n22 n23 n24
+   * n31 n32 n33 n34
+   * n41 n42 n43 n44
+   * @param {number} n11
+   * @param {number} n12
+   * @param {number} n13
+   * @param {number} n14
+   * @param {number} n21
+   * @param {number} n22
+   * @param {number} n23
+   * @param {number} n24
+   * @param {number} n31
+   * @param {number} n32
+   * @param {number} n33
+   * @param {number} n34
+   * @param {number} n41
+   * @param {number} n42
+   * @param {number} n43
+   * @param {number} n44
+   * @returns {Matrix4x4}
    */
   set(
     n11,
@@ -100,11 +125,23 @@ export class Matrix4x4 {
     return this.set(1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1);
   }
 
-  // --- Multiplication ---
+  /**
+   * Multiply this Matrix4x4 by another Matrix4x4
+   * this × m
+   * @param {Matrix4x4} m
+   * @returns {Matrix4x4}
+   */
   multiply(m) {
     return this.multiplyMatrices(this, m);
   }
 
+  /**
+   * Set this Matrix4x4 to the matrix multiplication of two Matrix4x4s
+   * this = a × b
+   * @param {Matrix4x4} a
+   * @param {Matrix4x4} b
+   * @returns {Matrix4x4}
+   */
   multiplyMatrices(a, b) {
     const ae = a.elements,
       be = b.elements,
@@ -167,7 +204,146 @@ export class Matrix4x4 {
     return this;
   }
 
-  // --- Transpose ---
+  /**
+   *
+   * @param {Vector3} position
+   * @param {Quaternion} quaternion
+   * @param {Vector3} scale
+   * @returns {Matrix4x4}
+   */
+  compose(position, quaternion, scale) {
+    const te = this.elements;
+    const x = quaternion.x,
+      y = quaternion.y,
+      z = quaternion.z,
+      w = quaternion.w;
+    const x2 = x + x,
+      y2 = y + y,
+      z2 = z + z;
+    const xx = x * x2,
+      xy = x * y2,
+      xz = x * z2;
+    const yy = y * y2,
+      yz = y * z2,
+      zz = z * z2;
+    const wx = w * x2,
+      wy = w * y2,
+      wz = w * z2;
+
+    const sx = scale.x,
+      sy = scale.y,
+      sz = scale.z;
+
+    te[0] = (1 - (yy + zz)) * sx;
+    te[1] = (xy + wz) * sx;
+    te[2] = (xz - wy) * sx;
+    te[3] = 0;
+
+    te[4] = (xy - wz) * sy;
+    te[5] = (1 - (xx + zz)) * sy;
+    te[6] = (yz + wx) * sy;
+    te[7] = 0;
+
+    te[8] = (xz + wy) * sz;
+    te[9] = (yz - wx) * sz;
+    te[10] = (1 - (xx + yy)) * sz;
+    te[11] = 0;
+
+    te[12] = position.x;
+    te[13] = position.y;
+    te[14] = position.z;
+    te[15] = 1;
+
+    return this;
+  }
+
+  decompose(position, quaternion, scale) {
+    const te = this.elements;
+
+    // 1) Translation
+    position.set(te[12], te[13], te[14]);
+
+    // 2) Extract columns (basis vectors)
+    const colX = new Vector3(te[0], te[1], te[2]); // first column
+    const colY = new Vector3(te[4], te[5], te[6]); // second column
+    const colZ = new Vector3(te[8], te[9], te[10]); // third column
+
+    // 3) Lengths = scales (positive magnitudes)
+    let sx = colX.length();
+    let sy = colY.length();
+    let sz = colZ.length();
+
+    // Avoid divide-by-zero: if one scale is zero, treat inv as 0 to preserve zeros
+    const invSx = sx !== 0 ? 1 / sx : 0;
+    const invSy = sy !== 0 ? 1 / sy : 0;
+    const invSz = sz !== 0 ? 1 / sz : 0;
+
+    // 4) Normalize columns to get a rotation matrix (still column-major)
+    const rx = new Vector3(colX.x * invSx, colX.y * invSx, colX.z * invSx);
+    const ry = new Vector3(colY.x * invSy, colY.y * invSy, colY.z * invSy);
+    const rz = new Vector3(colZ.x * invSz, colZ.y * invSz, colZ.z * invSz);
+
+    // 5) Compute determinant of rotation part to detect mirroring (handedness)
+    // Using cross(x, y) dot z gives determinant sign for right-handed system
+    const det = rx.clone().cross(ry).dot(rz);
+
+    if (det < 0) {
+      // Mirror detected. Determine which axis was flipped in the original scale
+      // We determine which original column, when negated, makes the basis right-handed.
+      // Test flipping X:
+      if (rx.clone().negate().cross(ry).dot(rz) > 0) {
+        sx = -sx;
+        rx.negate();
+      }
+      // else test flipping Y:
+      else if (rx.clone().cross(ry.clone().negate()).dot(rz) > 0) {
+        sy = -sy;
+        ry.negate();
+      }
+      // else flip Z:
+      else {
+        sz = -sz;
+        rz.negate();
+      }
+    }
+
+    // 6) Build a rotation matrix explicitly in column-major order:
+    const rot = new Matrix4x4();
+    const re = rot.elements;
+    // first column = rx
+    re[0] = rx.x;
+    re[1] = rx.y;
+    re[2] = rx.z;
+    re[3] = 0;
+    // second column = ry
+    re[4] = ry.x;
+    re[5] = ry.y;
+    re[6] = ry.z;
+    re[7] = 0;
+    // third column = rz
+    re[8] = rz.x;
+    re[9] = rz.y;
+    re[10] = rz.z;
+    re[11] = 0;
+    // translation / bottom row
+    re[12] = 0;
+    re[13] = 0;
+    re[14] = 0;
+    re[15] = 1;
+
+    // 7) Quaternion from rotation matrix (expects column-major)
+    quaternion.fromRotationMatrix(rot);
+
+    // 8) Set scale (with preserved signs)
+    scale.set(sx, sy, sz);
+
+    return this;
+  }
+
+  /**
+   * Transpose this Matrix4x4
+   * @returns {Matrix4x4}
+   */
   transpose() {
     const e = this.elements;
     let tmp;
@@ -192,56 +368,66 @@ export class Matrix4x4 {
     return this;
   }
 
-  // --- Determinant & inversion ---
+  /**
+   * Calculate the determinant of this Matrix4x4
+   * @returns {number}
+   */
   determinant() {
-    const e = this.elements;
+    const te = this.elements;
 
-    const n11 = e[0],
-      n12 = e[4],
-      n13 = e[8],
-      n14 = e[12];
-    const n21 = e[1],
-      n22 = e[5],
-      n23 = e[9],
-      n24 = e[13];
-    const n31 = e[2],
-      n32 = e[6],
-      n33 = e[10],
-      n34 = e[14];
-    const n41 = e[3],
-      n42 = e[7],
-      n43 = e[11],
-      n44 = e[15];
+    const n11 = te[0],
+      n12 = te[4],
+      n13 = te[8],
+      n14 = te[12];
+    const n21 = te[1],
+      n22 = te[5],
+      n23 = te[9],
+      n24 = te[13];
+    const n31 = te[2],
+      n32 = te[6],
+      n33 = te[10],
+      n34 = te[14];
+    const n41 = te[3],
+      n42 = te[7],
+      n43 = te[11],
+      n44 = te[15];
 
-    // cofactor expansion (can be optimized further)
     return (
-      n41 * n34 * n23 * n12 -
-      n31 * n44 * n23 * n12 -
-      n41 * n24 * n33 * n12 +
-      n21 * n44 * n33 * n12 +
-      n31 * n24 * n43 * n12 -
-      n21 * n34 * n43 * n12 -
-      n41 * n34 * n13 * n22 +
-      n31 * n44 * n13 * n22 +
-      n41 * n14 * n33 * n22 -
-      n11 * n44 * n33 * n22 -
-      n31 * n14 * n43 * n22 +
-      n11 * n34 * n43 * n22 +
-      n41 * n24 * n13 * n32 -
-      n21 * n44 * n13 * n32 -
-      n41 * n14 * n23 * n32 +
-      n11 * n44 * n23 * n32 +
-      n21 * n14 * n43 * n32 -
-      n11 * n24 * n43 * n32 -
-      n31 * n24 * n13 * n42 +
-      n21 * n34 * n13 * n42 +
-      n31 * n14 * n23 * n42 -
-      n11 * n34 * n23 * n42 -
-      n21 * n14 * n33 * n42 +
-      n11 * n24 * n33 * n42
+      n41 *
+        (+n14 * n23 * n32 -
+          n13 * n24 * n32 -
+          n14 * n22 * n33 +
+          n12 * n24 * n33 +
+          n13 * n22 * n34 -
+          n12 * n23 * n34) +
+      n42 *
+        (+n11 * n23 * n34 -
+          n11 * n24 * n33 +
+          n14 * n21 * n33 -
+          n13 * n21 * n34 +
+          n13 * n24 * n31 -
+          n14 * n23 * n31) +
+      n43 *
+        (+n11 * n24 * n32 -
+          n11 * n22 * n34 -
+          n14 * n21 * n32 +
+          n12 * n21 * n34 +
+          n14 * n22 * n31 -
+          n12 * n24 * n31) +
+      n44 *
+        (-n13 * n22 * n31 -
+          n11 * n23 * n32 +
+          n11 * n22 * n33 +
+          n13 * n21 * n32 -
+          n12 * n21 * n33 +
+          n12 * n23 * n31)
     );
   }
 
+  /**
+   * Invert this Matrix4x4
+   * @returns {Matrix4x4}
+   */
   invert() {
     const m = this.elements;
     const inv = new Float32Array(16);
@@ -424,43 +610,43 @@ export class Matrix4x4 {
 
   // --- Alias methods for convenience and chaining ---
   translate(v) {
-    return this.multiply(new Matrix4x4().fromTranslation(v));
+    return this.multiply(new Matrix4x4().setFromTranslation(v));
   }
 
   scale(v) {
-    return this.multiply(new Matrix4x4().fromScaling(v));
+    return this.multiply(new Matrix4x4().setFromScaling(v));
   }
 
   rotateQuaternion(q) {
-    return this.multiply(new Matrix4x4().fromRotationQuaternion(q));
+    return this.multiply(new Matrix4x4().setFromRotationQuaternion(q));
   }
 
   perspective(fov, aspect, near, far) {
     return this.multiply(
-      new Matrix4x4().fromPerspective(fov, aspect, near, far)
+      new Matrix4x4().setFromPerspective(fov, aspect, near, far)
     );
   }
 
   ortho(left, right, bottom, top, near, far) {
     return this.multiply(
-      new Matrix4x4().fromOrtho(left, right, bottom, top, near, far)
+      new Matrix4x4().setFromOrtho(left, right, bottom, top, near, far)
     );
   }
 
   lookAt(eye, target, up) {
-    return this.multiply(new Matrix4x4().fromLookAt(eye, target, up));
+    return this.multiply(new Matrix4x4().setFromLookAt(eye, target, up));
   }
 
   // --- Convenience constructors ---
-  fromTranslation(v) {
+  setFromTranslation(v) {
     return this.set(1, 0, 0, v.x, 0, 1, 0, v.y, 0, 0, 1, v.z, 0, 0, 0, 1);
   }
 
-  fromScaling(v) {
+  setFromScaling(v) {
     return this.set(v.x, 0, 0, 0, 0, v.y, 0, 0, 0, 0, v.z, 0, 0, 0, 0, 1);
   }
 
-  fromRotationQuaternion(q) {
+  setFromRotationQuaternion(q) {
     const x = q.x,
       y = q.y,
       z = q.z,
@@ -497,9 +683,10 @@ export class Matrix4x4 {
     );
   }
 
-  fromPerspective(fov, aspect, near, far) {
+  setFromPerspective(fov, aspect, near, far) {
     const f = 1 / Math.tan(fov / 2);
-    const nf = 1 / (near - far);
+    const nf = 1 / (far - near);
+
     return this.set(
       f / aspect,
       0,
@@ -512,15 +699,15 @@ export class Matrix4x4 {
       0,
       0,
       (far + near) * nf,
-      2 * far * near * nf,
-      0,
-      0,
       -1,
+      0,
+      0,
+      2 * far * near * nf,
       0
     );
   }
 
-  fromOrtho(left, right, bottom, top, near, far) {
+  setFromOrtho(left, right, bottom, top, near, far) {
     const lr = 1 / (left - right),
       bt = 1 / (bottom - top),
       nf = 1 / (near - far);
@@ -544,10 +731,10 @@ export class Matrix4x4 {
     );
   }
 
-  fromLookAt(eye, target, up) {
-    const z = new Vector3().copy(eye).sub(target).normalize();
-    const x = new Vector3().copy(up).cross(z).normalize();
-    const y = new Vector3().copy(z).cross(x);
+  setFromLookAt(eye, target, up) {
+    const z = eye.clone().sub(target).normalize();
+    const x = up.clone().cross(z).normalize();
+    const y = z.clone().cross(x).normalize();
     return this.set(
       x.x,
       y.x,
@@ -569,7 +756,7 @@ export class Matrix4x4 {
   }
 
   // Assumes Euler angles in radians, order XYZ
-  fromEuler(x, y, z) {
+  setFromEuler(x, y, z) {
     const cx = Math.cos(x),
       sx = Math.sin(x);
     const cy = Math.cos(y),

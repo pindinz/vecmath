@@ -52,10 +52,10 @@ describe('Vector3', () => {
     expect(c.z).to.equal(3);
   });
 
-  it('should set fromArray correctly', () => {
+  it('should setFromArray correctly', () => {
     const arr = [1, 2, 3, 4, 5];
     const v = new Vector3();
-    v.fromArray(arr, 1);
+    v.setFromArray(arr, 1);
     expect(v.x).to.equal(2);
     expect(v.y).to.equal(3);
     expect(v.z).to.equal(4);
@@ -131,7 +131,7 @@ describe('Vector3', () => {
 
     it('should applyMatrix4 correctly', () => {
       const v = new Vector3(1, 1, 1);
-      const m = new Matrix4x4().fromTranslation(new Vector3(1, 2, 3));
+      const m = new Matrix4x4().setFromTranslation(new Vector3(1, 2, 3));
       v.applyMatrix4(m);
       expect(v.equals(new Vector3(2, 3, 4), EPSILON)).to.be.true;
     });
