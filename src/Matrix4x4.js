@@ -25,6 +25,7 @@ export class Matrix4x4 {
     n43 = 0,
     n44 = 1
   ) {
+    this._scratch = null;
     this.elements = new Float32Array(16);
     this.set(
       n11,
@@ -260,105 +261,98 @@ export class Matrix4x4 {
   decompose(position, quaternion, scale) {
     const te = this.elements;
 
-    // 1) Translation
+    // --- Extract translation ---
     position.set(te[12], te[13], te[14]);
 
-    // 2) Extract columns (basis vectors)
-    const colX = new Vector3(te[0], te[1], te[2]); // first column
-    const colY = new Vector3(te[4], te[5], te[6]); // second column
-    const colZ = new Vector3(te[8], te[9], te[10]); // third column
+    // --- Create or reuse scratch objects ---
+    if (!this._scratch) {
+      this._scratch = {
+        colX: new Vector3(),
+        colY: new Vector3(),
+        colZ: new Vector3(),
+        tmpV: new Vector3(),
+        tmpM: Object.create(Matrix4x4.prototype),
+      };
+      this._scratch.tmpM.elements = new Float32Array(16);
+      this._scratch.tmpM.identity();
+    }
 
-    // 3) Lengths = scales (positive magnitudes)
-    // Extract scale safely
-    let sx = Math.hypot(te[0], te[1], te[2]);
-    let sy = Math.hypot(te[4], te[5], te[6]);
-    let sz = Math.hypot(te[8], te[9], te[10]);
+    const { colX, colY, colZ, tmpM } = this._scratch;
 
-    // Avoid divide-by-zero: if one scale is zero, treat inv as 0 to preserve zeros
-    // Avoid division by near-zero (degenerate scales)
-    const EPS = 1e-12;
-    const invSx = sx > EPS ? 1 / sx : 0;
-    const invSy = sy > EPS ? 1 / sy : 0;
-    const invSz = sz > EPS ? 1 / sz : 0;
+    // --- Extract columns ---
+    colX.set(te[0], te[1], te[2]);
+    colY.set(te[4], te[5], te[6]);
+    colZ.set(te[8], te[9], te[10]);
 
-    // 4) Normalize columns to get a rotation matrix (still column-major)
-    const rx = new Vector3(colX.x * invSx, colX.y * invSx, colX.z * invSx);
-    const ry = new Vector3(colY.x * invSy, colY.y * invSy, colY.z * invSy);
-    const rz = new Vector3(colZ.x * invSz, colZ.y * invSz, colZ.z * invSz);
+    // --- Extract scale ---
+    const sx = colX.length();
+    const sy = colY.length();
+    const sz = colZ.length();
 
-    // 5) Compute determinant of rotation part to detect mirroring (handedness)
-    // Using cross(x, y) dot z gives determinant sign for right-handed system
-    const detSign = rx.clone().cross(ry).dot(rz);
+    // Guard against divide-by-zero
+    if (sx === 0 || sy === 0 || sz === 0) {
+      scale.set(0, 0, 0);
+      quaternion.identity();
+      return this;
+    }
 
-    if (detSign < 0) {
-      // Mirror detected. Determine which axis was flipped in the original scale
-      // We determine which original column, when negated, makes the basis right-handed.
-      // Test flipping X:
-      if (rx.clone().negate().cross(ry).dot(rz) > 0) {
-        sx = -sx;
-        rx.negate();
-      }
-      // else test flipping Y:
-      else if (rx.clone().cross(ry.clone().negate()).dot(rz) > 0) {
-        sy = -sy;
-        ry.negate();
-      }
-      // else flip Z:
-      else {
-        sz = -sz;
-        rz.negate();
+    scale.set(sx, sy, sz);
+
+    // --- Normalize rotation columns ---
+    const invSx = 1 / sx,
+      invSy = 1 / sy,
+      invSz = 1 / sz;
+    colX.multiplyScalar(invSx);
+    colY.multiplyScalar(invSy);
+    colZ.multiplyScalar(invSz);
+
+    // --- Detect mirroring (negative determinant) ---
+    const tmpV = new Vector3().crossProduct(colX, colY);
+    const det = tmpV.dot(colZ);
+    // Use a small tolerance to ignore numerical noise near zero determinant
+    const EPS = 1e-8;
+    if (det < -EPS) {
+      // Flip the axis with largest magnitude to fix the handedness
+      const absX = Math.abs(sx);
+      const absY = Math.abs(sy);
+      const absZ = Math.abs(sz);
+      const maxScale = Math.max(absX, absY, absZ);
+
+      if (absX === maxScale) {
+        colX.multiplyScalar(-1);
+        scale.x *= -1;
+      } else if (absY === maxScale) {
+        colY.multiplyScalar(-1);
+        scale.y *= -1;
+      } else {
+        colZ.multiplyScalar(-1);
+        scale.z *= -1;
       }
     }
 
-    // 6) Build a rotation matrix explicitly in column-major order:
-    const rot = new Matrix4x4();
-    const re = rot.elements;
-    // first column = rx
-    re[0] = rx.x;
-    re[1] = rx.y;
-    re[2] = rx.z;
-    re[3] = 0;
-    // second column = ry
-    re[4] = ry.x;
-    re[5] = ry.y;
-    re[6] = ry.z;
-    re[7] = 0;
-    // third column = rz
-    re[8] = rz.x;
-    re[9] = rz.y;
-    re[10] = rz.z;
-    re[11] = 0;
-    // translation / bottom row
-    re[12] = 0;
-    re[13] = 0;
-    re[14] = 0;
-    re[15] = 1;
+    // --- Rebuild normalized rotation matrix into tmpM ---
+    const me = tmpM.elements;
+    me[0] = colX.x;
+    me[1] = colX.y;
+    me[2] = colX.z;
+    me[3] = 0;
+    me[4] = colY.x;
+    me[5] = colY.y;
+    me[6] = colY.z;
+    me[7] = 0;
+    me[8] = colZ.x;
+    me[9] = colZ.y;
+    me[10] = colZ.z;
+    me[11] = 0;
+    me[12] = 0;
+    me[13] = 0;
+    me[14] = 0;
+    me[15] = 1;
 
-    // 7) Quaternion from rotation matrix (expects column-major)
-    quaternion.setFromRotationMatrix(rot);
+    // --- Convert rotation matrix to quaternion ---
+    quaternion.setFromRotationMatrix(tmpM);
 
-    /*
-te[0] = (1 - (yy + zz)) * sx;
-    te[1] = (xy + wz) * sx;
-    te[2] = (xz - wy) * sx;
-    te[3] = 0;
-
-    te[4] = (xy - wz) * sy;
-    te[5] = (1 - (xx + zz)) * sy;
-    te[6] = (yz + wx) * sy;
-    te[7] = 0;
-
-    te[8] = (xz + wy) * sz;
-    te[9] = (yz - wx) * sz;
-    te[10] = (1 - (xx + yy)) * sz;
-    te[11] = 0;
-    */
-    sx = te[0] / (1 - 2 * quaternion.y ** 2 - 2 * quaternion.z ** 2);
-    sy = te[5] / (1 - 2 * quaternion.x ** 2 - 2 * quaternion.z ** 2);
-    sz = te[10] / (1 - 2 * quaternion.x ** 2 - 2 * quaternion.y ** 2);
-
-    // 8) Set scale (with preserved signs)
-    scale.set(sx, sy, sz);
+    if (quaternion.w < 0) quaternion.negate();
 
     return this;
   }
@@ -644,18 +638,6 @@ te[0] = (1 - (yy + zz)) * sx;
     return this.multiply(new Matrix4x4().setFromRotationQuaternion(q));
   }
 
-  perspective(fov, aspect, near, far) {
-    return this.multiply(
-      new Matrix4x4().setFromPerspective(fov, aspect, near, far)
-    );
-  }
-
-  ortho(left, right, bottom, top, near, far) {
-    return this.multiply(
-      new Matrix4x4().setFromOrtho(left, right, bottom, top, near, far)
-    );
-  }
-
   lookAt(eye, target, up) {
     return this.multiply(new Matrix4x4().setFromLookAt(eye, target, up));
   }
@@ -821,9 +803,5 @@ te[0] = (1 - (yy + zz)) * sx;
       0,
       1
     );
-  }
-
-  static identity() {
-    return new Matrix4x4();
   }
 }

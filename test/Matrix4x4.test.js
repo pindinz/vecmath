@@ -180,6 +180,9 @@ describe('Matrix4x4', () => {
     // Double inversion returns original
     const inv2 = inv.clone().invert();
     expect(inv2.equals(m, EPSILON)).to.be.true;
+
+    m.set(2, 3, 2, 5, 1, 2, 1, 4, 0, 0, 0, 0, 1, 0, 1, 2);
+    expect(m.clone().invert().equals(identity)).to.be.true;
   });
 
   it('should apply to Vector3 correctly', () => {
@@ -233,6 +236,16 @@ describe('Matrix4x4', () => {
     expect(out.y).to.be.closeTo(3, EPSILON);
     expect(out.z).to.be.closeTo(4, EPSILON);
     expect(out.w).to.be.closeTo(1, EPSILON);
+  });
+
+  it('should compare matrices correctly', () => {
+    const a = new Matrix4x4();
+    expect(a.equals(a.clone())).to.be.true;
+    expect(
+      a.equals(
+        new Matrix4x4().setFromEuler(Math.PI / 2, Math.PI / 3, Math.PI / 4)
+      )
+    ).to.be.false;
   });
 
   describe('Matrix4x4 convenience constructors', () => {
