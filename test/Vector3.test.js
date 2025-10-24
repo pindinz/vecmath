@@ -24,6 +24,73 @@ describe('Vector3', () => {
     expect(Vector3.backward().toArray()).to.deep.equal([0, -1, 0]);
   });
 
+  it('should set and call the onChange callback correctly', () => {
+    let changed = false;
+    const handleOnChange = () => {
+      changed = true;
+    };
+    const v = new Vector3();
+    v.onChange(handleOnChange);
+    expect(v._onChange).to.be.a('function');
+
+    changed = false;
+    v.x = 1;
+    expect(changed).to.be.true;
+    changed = false;
+    v.y = 1;
+    expect(changed).to.be.true;
+    changed = false;
+    v.z = 1;
+    expect(changed).to.be.true;
+    changed = false;
+    v.set(1, 2, 3);
+    expect(changed).to.be.true;
+
+    changed = false;
+    v.copy(new Vector3());
+    expect(changed).to.be.true;
+
+    changed = false;
+    v.add(new Vector3());
+    expect(changed).to.be.true;
+
+    changed = false;
+    v.addScaledVector(new Vector3(), 3);
+    expect(changed).to.be.true;
+
+    changed = false;
+    v.sub(new Vector3());
+    expect(changed).to.be.true;
+
+    changed = false;
+    v.multiplyScalar(5);
+    expect(changed).to.be.true;
+
+    changed = false;
+    v.divideScalar(5);
+    expect(changed).to.be.true;
+
+    changed = false;
+    v.cross(new Vector3());
+    expect(changed).to.be.true;
+
+    changed = false;
+    v.crossProduct(new Vector3(1, 0, 0), new Vector3(0, 1, 0));
+    expect(changed).to.be.true;
+
+    changed = false;
+    v.negate();
+    expect(changed).to.be.true;
+
+    changed = false;
+    v.applyMatrix4(new Matrix4x4());
+    expect(changed).to.be.true;
+
+    changed = false;
+    v.setFromArray([1, 2, 3], 0);
+    expect(changed).to.be.true;
+  });
+
   it('should set correctly', () => {
     const v = new Vector3();
     v.set(1, 2, 3);
@@ -61,11 +128,39 @@ describe('Vector3', () => {
     expect(v.z).to.equal(4);
   });
 
-  it('should add vectors', () => {
+  it('should add a vector', () => {
     const v1 = new Vector3(1, 2, 3);
     const v2 = new Vector3(4, 5, 6);
     v1.add(v2);
     expect(v1.toArray()).to.deep.equal([5, 7, 9]);
+  });
+
+  it('should add a scaled vector', () => {
+    const v1 = new Vector3(1, 2, 3);
+    const v2 = new Vector3(4, 5, 6);
+    v1.addScaledVector(v2, 2);
+    expect(v1.toArray()).to.deep.equal([9, 12, 15]);
+  });
+
+  it('should subtract a vector', () => {
+    const v1 = new Vector3(1, 2, 3);
+    const v2 = new Vector3(4, 5, 6);
+    v1.sub(v2);
+    expect(v1.toArray()).to.deep.equal([-3, -3, -3]);
+  });
+
+  it('should multiply a vector by a scalar', () => {
+    const v1 = new Vector3(1, 2, 3);
+    v1.multiplyScalar(5);
+    expect(v1.toArray()).to.deep.equal([5, 10, 15]);
+  });
+
+  it('should divide a vector by a scalar', () => {
+    const v1 = new Vector3(5, 10, 15);
+    v1.divideScalar(5);
+    expect(v1.toArray()).to.deep.equal([1, 2, 3]);
+    v1.divideScalar(0);
+    expect(v1.toArray()).to.deep.equal([NaN, NaN, NaN]);
   });
 
   it('should compute dot product', () => {
@@ -79,6 +174,18 @@ describe('Vector3', () => {
     const v2 = new Vector3(4, 5, 6);
     v1.cross(v2);
     expect(v1.toArray()).to.deep.equal([-3, 6, -3]);
+  });
+
+  it('should compute cross product', () => {
+    const v1 = new Vector3(1, 2, 3);
+    const v2 = new Vector3(4, 5, 6);
+    v1.crossProduct(v1.clone(), v2);
+    expect(v1.toArray()).to.deep.equal([-3, 6, -3]);
+  });
+
+    it('should compute length squared', () => {
+    const v1 = new Vector3(1, 2, 3);
+    expect(v1.lengthSq()).to.equal(14);
   });
 
   it('should normalize correctly', () => {
@@ -133,6 +240,9 @@ describe('Vector3', () => {
       const v = new Vector3(1, 1, 1);
       const m = new Matrix4x4().setFromTranslation(new Vector3(1, 2, 3));
       v.applyMatrix4(m);
+      expect(v.equals(new Vector3(2, 3, 4), EPSILON)).to.be.true;
+      v.set(1, 1, 1);
+      v.applyMatrix4(m, true);
       expect(v.equals(new Vector3(2, 3, 4), EPSILON)).to.be.true;
     });
   });

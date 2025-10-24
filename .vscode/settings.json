@@ -1,6 +1,9 @@
 {
   "editor.formatOnSave": true,
-  "eslint.enable": true,
+  "editor.defaultFormatter": "esbenp.prettier-vscode",
+  "editor.codeActionsOnSave": {
+    "source.fixAll.eslint": "explicit"
+  },
   "files.eol": "\n",
   "prettier.singleQuote": true
 }

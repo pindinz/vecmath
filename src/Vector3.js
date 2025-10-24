@@ -150,7 +150,7 @@ export class Vector3 {
       return this.multiplyScalar(1 / s);
     } else {
       console.error('Vector3.divideScalar: division by zero');
-      return undefined;
+      return this.set(NaN, NaN, NaN);
     }
   }
 
