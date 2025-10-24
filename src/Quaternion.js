@@ -109,6 +109,16 @@ export class Quaternion {
     return this;
   }
 
+  negate() {
+    const e = this.elements;
+    e[0] = -e[0];
+    e[1] = -e[1];
+    e[2] = -e[2];
+    e[3] = -e[3];
+    this._onChange?.();
+    return this;
+  }
+
   /**
    * Calculate the length squared of this Quaternion
    * @returns {number}

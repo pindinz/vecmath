@@ -220,7 +220,8 @@ export class Vector3 {
    * @returns {number}
    */
   length() {
-    return Math.sqrt(this.lengthSq());
+    const e = this.elements;
+    return Math.hypot(e[0], e[1], e[2]);
   }
 
   /**

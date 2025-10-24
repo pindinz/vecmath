@@ -269,14 +269,17 @@ export class Matrix4x4 {
     const colZ = new Vector3(te[8], te[9], te[10]); // third column
 
     // 3) Lengths = scales (positive magnitudes)
-    let sx = colX.length();
-    let sy = colY.length();
-    let sz = colZ.length();
+    // Extract scale safely
+    let sx = Math.hypot(te[0], te[1], te[2]);
+    let sy = Math.hypot(te[4], te[5], te[6]);
+    let sz = Math.hypot(te[8], te[9], te[10]);
 
     // Avoid divide-by-zero: if one scale is zero, treat inv as 0 to preserve zeros
-    const invSx = sx !== 0 ? 1 / sx : 0;
-    const invSy = sy !== 0 ? 1 / sy : 0;
-    const invSz = sz !== 0 ? 1 / sz : 0;
+    // Avoid division by near-zero (degenerate scales)
+    const EPS = 1e-12;
+    const invSx = sx > EPS ? 1 / sx : 0;
+    const invSy = sy > EPS ? 1 / sy : 0;
+    const invSz = sz > EPS ? 1 / sz : 0;
 
     // 4) Normalize columns to get a rotation matrix (still column-major)
     const rx = new Vector3(colX.x * invSx, colX.y * invSx, colX.z * invSx);
@@ -285,9 +288,9 @@ export class Matrix4x4 {
 
     // 5) Compute determinant of rotation part to detect mirroring (handedness)
     // Using cross(x, y) dot z gives determinant sign for right-handed system
-    const det = rx.clone().cross(ry).dot(rz);
+    const detSign = rx.clone().cross(ry).dot(rz);
 
-    if (det < 0) {
+    if (detSign < 0) {
       // Mirror detected. Determine which axis was flipped in the original scale
       // We determine which original column, when negated, makes the basis right-handed.
       // Test flipping X:
@@ -332,7 +335,27 @@ export class Matrix4x4 {
     re[15] = 1;
 
     // 7) Quaternion from rotation matrix (expects column-major)
-    quaternion.fromRotationMatrix(rot);
+    quaternion.setFromRotationMatrix(rot);
+
+    /*
+te[0] = (1 - (yy + zz)) * sx;
+    te[1] = (xy + wz) * sx;
+    te[2] = (xz - wy) * sx;
+    te[3] = 0;
+
+    te[4] = (xy - wz) * sy;
+    te[5] = (1 - (xx + zz)) * sy;
+    te[6] = (yz + wx) * sy;
+    te[7] = 0;
+
+    te[8] = (xz + wy) * sz;
+    te[9] = (yz - wx) * sz;
+    te[10] = (1 - (xx + yy)) * sz;
+    te[11] = 0;
+    */
+    sx = te[0] / (1 - 2 * quaternion.y ** 2 - 2 * quaternion.z ** 2);
+    sy = te[5] / (1 - 2 * quaternion.x ** 2 - 2 * quaternion.z ** 2);
+    sz = te[10] / (1 - 2 * quaternion.x ** 2 - 2 * quaternion.y ** 2);
 
     // 8) Set scale (with preserved signs)
     scale.set(sx, sy, sz);
