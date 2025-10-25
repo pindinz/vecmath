@@ -1,3 +1,4 @@
+import { Matrix4x4 } from './matrix4x4.js';
 import { Vector3 } from './vector3.js';
 
 /**
@@ -64,6 +65,11 @@ export class Quaternion {
     return this;
   }
 
+  /**
+   * Set the onChange callback for this Quaternion
+   * @param {function} callback
+   * @returns {Quaternion}
+   */
   onChange(callback) {
     this._onChange = callback;
     return this;
@@ -109,6 +115,10 @@ export class Quaternion {
     return this;
   }
 
+  /**
+   * Negate this Quaternion
+   * @returns {Quaternion}
+   */
   negate() {
     const e = this.elements;
     e[0] = -e[0];
@@ -241,33 +251,6 @@ export class Quaternion {
   }
 
   /**
-   *
-   * @param {Quaternion} a
-   * @param {Quaternion} b
-   * @param {Quaternion} out
-   */
-  /*static multiplyQuaternions(a, b, out = new Quaternion()) {
-    // out = a * b
-    const ae = a.elements;
-    const be = b.elements;
-    const e = out.elements;
-
-    const ax = ae[0],
-      ay = ae[1],
-      az = ae[2],
-      aw = ae[3];
-    const bx = be[0],
-      by = be[1],
-      bz = be[2],
-      bw = be[3];
-
-    e[0] = aw * bx + ax * bw + ay * bz - az * by;
-    e[1] = aw * by - ax * bz + ay * bw + az * bx;
-    e[2] = aw * bz + ax * by - ay * bx + az * bw;
-    e[3] = aw * bw - ax * bx - ay * by - az * bz;
-  }*/
-
-  /**
    * Rotate a Vector3 by the rotation defined by this Quaternion
    * The Quaternion is expected to be normalized
    * @param {Vector3} v
@@ -363,6 +346,10 @@ export class Quaternion {
     return this.normalize();
   }
 
+  /**
+   * Extracts axis and angle from this Quaternion
+   * @returns {object} {axis: Vector3, angle: number}
+   */
   toAxisAngle() {
     if (this.w > 1) this.normalize();
     const angle = 2 * Math.acos(this.w);
@@ -395,6 +382,11 @@ export class Quaternion {
     return this.normalize();
   }
 
+  /**
+   * Sets this Quaternion from a rotation Matrix4x4
+   * @param {Matrix4x4} m
+   * @returns {Quaternion}
+   */
   setFromRotationMatrix(m) {
     const te = m.elements;
     const m11 = te[0],
@@ -439,10 +431,20 @@ export class Quaternion {
     return this.normalize();
   }
 
+  /**
+   * Returns the x, y, z, w values in an array
+   * @returns {Quaternion}
+   */
   toArray() {
     return Array.from(this.elements);
   }
 
+  /**
+   * Sets this Quaternion from 4 subsequent elements of an array starting at an offset which defaults to 0
+   * @param {Array} arr
+   * @param {number} offset
+   * @returns {Quaternion}
+   */
   setFromArray(arr, offset = 0) {
     const e = this.elements;
     e[0] = arr[offset];
@@ -453,6 +455,12 @@ export class Quaternion {
     return this;
   }
 
+  /**
+   * Compares two Quaternions for equality down to a certain precision
+   * @param {Quaternion} q
+   * @param {number} epsilon
+   * @returns {boolean}
+   */
   equals(q, epsilon = 1e-6) {
     const e = this.elements,
       f = q.elements;

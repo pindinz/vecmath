@@ -51,6 +51,11 @@ export class Vector3 {
     return this;
   }
 
+  /**
+   * Set the onChange callback for this Vector3
+   * @param {function} callback
+   * @returns {Vector3}
+   */
   onChange(callback) {
     this._onChange = callback;
     return this;
