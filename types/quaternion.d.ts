@@ -79,6 +79,7 @@ export class Quaternion {
      * @returns {Quaternion}
      */
     conjugate(): Quaternion;
+    negate(): this;
     /**
      * Calculate the length squared of this Quaternion
      * @returns {number}

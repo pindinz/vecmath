@@ -5,5 +5,6 @@
     "source.fixAll.eslint": "explicit"
   },
   "files.eol": "\n",
-  "prettier.singleQuote": true
+  "prettier.singleQuote": true,
+  "typescript.updateImportsOnPaste.enabled": false
 }

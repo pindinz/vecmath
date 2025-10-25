@@ -246,7 +246,7 @@ export class Quaternion {
    * @param {Quaternion} b
    * @param {Quaternion} out
    */
-  static multiplyQuaternions(a, b, out = new Quaternion()) {
+  /*static multiplyQuaternions(a, b, out = new Quaternion()) {
     // out = a * b
     const ae = a.elements;
     const be = b.elements;
@@ -265,7 +265,7 @@ export class Quaternion {
     e[1] = aw * by - ax * bz + ay * bw + az * bx;
     e[2] = aw * bz + ax * by - ay * bx + az * bw;
     e[3] = aw * bw - ax * bx - ay * by - az * bz;
-  }
+  }*/
 
   /**
    * Rotate a Vector3 by the rotation defined by this Quaternion

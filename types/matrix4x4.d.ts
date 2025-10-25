@@ -3,8 +3,14 @@
  * The elements are stored in a Float32Array in column-major order
  */
 export class Matrix4x4 {
-    static identity(): Matrix4x4;
     constructor(n11?: number, n12?: number, n13?: number, n14?: number, n21?: number, n22?: number, n23?: number, n24?: number, n31?: number, n32?: number, n33?: number, n34?: number, n41?: number, n42?: number, n43?: number, n44?: number);
+    _scratch: {
+        colX: Vector3;
+        colY: Vector3;
+        colZ: Vector3;
+        tmpV: Vector3;
+        tmpM: any;
+    } | null;
     elements: Float32Array<ArrayBuffer>;
     /**
      * Set the elements of this Matrix4x4
@@ -81,8 +87,6 @@ export class Matrix4x4 {
     translate(v: any): Matrix4x4;
     scale(v: any): Matrix4x4;
     rotateQuaternion(q: any): Matrix4x4;
-    perspective(fov: any, aspect: any, near: any, far: any): Matrix4x4;
-    ortho(left: any, right: any, bottom: any, top: any, near: any, far: any): Matrix4x4;
     lookAt(eye: any, target: any, up: any): Matrix4x4;
     setFromTranslation(v: any): Matrix4x4;
     setFromScaling(v: any): Matrix4x4;

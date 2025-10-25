@@ -2,6 +2,7 @@
 import { expect } from 'chai';
 import { Quaternion } from '../src/quaternion.js';
 import { Vector3 } from '../src/vector3.js';
+import { Matrix4x4 } from '../src/matrix4x4.js';
 
 const EPSILON = 1e-5;
 
@@ -12,6 +13,94 @@ describe('Quaternion', () => {
     expect(q.y).to.equal(2);
     expect(q.z).to.equal(3);
     expect(q.w).to.equal(4);
+  });
+
+  it('should set and call the onChange callback correctly', () => {
+    let changed = false;
+    const handleOnChange = () => {
+      changed = true;
+    };
+    const q = new Quaternion();
+    q.onChange(handleOnChange);
+    expect(q._onChange).to.be.a('function');
+
+    changed = false;
+    q.x = 1;
+    expect(changed).to.be.true;
+    changed = false;
+    q.y = 1;
+    expect(changed).to.be.true;
+    changed = false;
+    q.z = 1;
+    expect(changed).to.be.true;
+    changed = false;
+    q.w = 1;
+    expect(changed).to.be.true;
+
+    changed = false;
+    q.set(1, 2, 3, 4);
+    expect(changed).to.be.true;
+
+    changed = false;
+    q.copy(new Quaternion());
+    expect(changed).to.be.true;
+
+    changed = false;
+    q.identity();
+    expect(changed).to.be.true;
+
+    changed = false;
+    q.conjugate();
+    expect(changed).to.be.true;
+
+    changed = false;
+    q.negate();
+    expect(changed).to.be.true;
+
+    changed = false;
+    q.normalize();
+    expect(changed).to.be.true;
+
+    changed = false;
+    q.invert();
+    expect(changed).to.be.true;
+
+    changed = false;
+    q.multiply(new Quaternion());
+    expect(changed).to.be.true;
+
+    changed = false;
+    q.multiplyQuaternions(q, new Quaternion());
+    expect(changed).to.be.true;
+
+    changed = false;
+    q.slerp(
+      new Quaternion().setFromEuler(Math.PI / 2, Math.PI / 3, Math.PI / 4),
+      0.5
+    );
+    expect(changed).to.be.true;
+    q.setFromEuler(Math.PI / 2, Math.PI / 3, Math.PI / 3.999);
+    q.slerp(
+      new Quaternion().setFromEuler(Math.PI / 2, Math.PI / 3, Math.PI / 4),
+      0.5
+    );
+    expect(changed).to.be.true;
+
+    changed = false;
+    q.setFromAxisAngle(new Vector3(0, 0, 1), Math.PI / 3);
+    expect(changed).to.be.true;
+
+    changed = false;
+    q.setFromEuler(Math.PI / 2, Math.PI / 3, Math.PI / 4);
+    expect(changed).to.be.true;
+
+    changed = false;
+    q.setFromRotationMatrix(new Matrix4x4());
+    expect(changed).to.be.true;
+
+    changed = false;
+    q.setFromArray([1, 2, 3, 4], 0);
+    expect(changed).to.be.true;
   });
 
   it('should set correctly', () => {
@@ -197,6 +286,27 @@ describe('Quaternion', () => {
       const q = new Quaternion(1, 2, 3, 4);
       q.conjugate();
       expect(q.equals(new Quaternion(-1, -2, -3, 4), EPSILON)).to.be.true;
+    });
+
+    it('should negate correctly', () => {
+      const q = new Quaternion(1, 2, 3, 4);
+      q.negate();
+      expect(q.equals(new Quaternion(-1, -2, -3, -4), EPSILON)).to.be.true;
+    });
+
+    it('should calculate length squared correctly', () => {
+      const q = new Quaternion(1, 2, 3, 4);
+      expect(q.lengthSq()).to.equal(30);
+    });
+
+    it('should calculate length correctly', () => {
+      const q = new Quaternion(1, 2, 3, 4);
+      expect(q.length()).to.equal(Math.hypot(1, 2, 3, 4));
+    });
+
+    it('should calculate the dot product correctly', () => {
+      const q = new Quaternion(1, 2, 3, 4);
+      expect(q.dot(new Quaternion(4, 3, 2, 1))).to.equal(20);
     });
 
     it('should normalize correctly', () => {
