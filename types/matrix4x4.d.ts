@@ -96,6 +96,6 @@ export class Matrix4x4 {
     setFromLookAt(eye: any, target: any, up: any): Matrix4x4;
     setFromEuler(x: any, y: any, z: any): Matrix4x4;
 }
-import { Vector3 } from './vector3.js';
-import { Quaternion } from './quaternion.js';
-import { Vector4 } from './vector4.js';
+import { Vector3 } from './Vector3.js';
+import { Quaternion } from './Quaternion.js';
+import { Vector4 } from './Vector4.js';

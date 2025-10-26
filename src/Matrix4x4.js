@@ -1,6 +1,6 @@
-import { Quaternion } from './quaternion.js';
-import { Vector3 } from './vector3.js';
-import { Vector4 } from './vector4.js';
+import { Quaternion } from './Quaternion.js';
+import { Vector3 } from './Vector3.js';
+import { Vector4 } from './Vector4.js';
 
 /**
  * Class representing a 4x4 matrix

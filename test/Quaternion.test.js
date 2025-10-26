@@ -1,8 +1,8 @@
 // test/Quaternion.test.js
 import { expect } from 'chai';
-import { Quaternion } from '../src/quaternion.js';
-import { Vector3 } from '../src/vector3.js';
-import { Matrix4x4 } from '../src/matrix4x4.js';
+import { Quaternion } from '../src/Quaternion.js';
+import { Vector3 } from '../src/Vector3.js';
+import { Matrix4x4 } from '../src/Matrix4x4.js';
 
 const EPSILON = 1e-5;
 

@@ -3,13 +3,6 @@
  */
 export class Quaternion {
     /**
-     *
-     * @param {Quaternion} a
-     * @param {Quaternion} b
-     * @param {Quaternion} out
-     */
-    static multiplyQuaternions(a: Quaternion, b: Quaternion, out?: Quaternion): void;
-    /**
      * Create a new identity Quaternion
      * @returns {Quaternion}
      */
@@ -39,7 +32,7 @@ export class Quaternion {
      */
     constructor(x?: number, y?: number, z?: number, w?: number);
     elements: Float32Array<ArrayBuffer>;
-    _onChange: any;
+    _onChange: Function | null;
     set x(v: number);
     get x(): number;
     set y(v: number);
@@ -57,7 +50,12 @@ export class Quaternion {
      * @returns {Quaternion}
      */
     set(x: number, y: number, z: number, w: number): Quaternion;
-    onChange(callback: any): this;
+    /**
+     * Set the onChange callback for this Quaternion
+     * @param {function} callback
+     * @returns {Quaternion}
+     */
+    onChange(callback: Function): Quaternion;
     /**
      * Copy the value of another Quaternion into this Quaternion
      * @param {Quaternion} q
@@ -79,7 +77,11 @@ export class Quaternion {
      * @returns {Quaternion}
      */
     conjugate(): Quaternion;
-    negate(): this;
+    /**
+     * Negate this Quaternion
+     * @returns {Quaternion}
+     */
+    negate(): Quaternion;
     /**
      * Calculate the length squared of this Quaternion
      * @returns {number}
@@ -145,10 +147,11 @@ export class Quaternion {
      * @returns {Quaternion}
      */
     setFromAxisAngle(axis: Vector3, angle: number): Quaternion;
-    toAxisAngle(): {
-        axis: Vector3;
-        angle: number;
-    };
+    /**
+     * Extracts axis and angle from this Quaternion
+     * @returns {object} {axis: Vector3, angle: number}
+     */
+    toAxisAngle(): object;
     /**
      * Set quaternion from intrinsic XYZ Euler rotation (rotate around local X, then Y, then Z).
      * @param {number} x rotation around X (radians)
@@ -157,9 +160,31 @@ export class Quaternion {
      * @returns {Quaternion}
      */
     setFromEuler(x: number, y: number, z: number): Quaternion;
-    setFromRotationMatrix(m: any): Quaternion;
-    toArray(): number[];
-    setFromArray(arr: any, offset?: number): this;
-    equals(q: any, epsilon?: number): boolean;
+    /**
+     * Sets this Quaternion from a rotation Matrix4x4
+     * @param {Matrix4x4} m
+     * @returns {Quaternion}
+     */
+    setFromRotationMatrix(m: Matrix4x4): Quaternion;
+    /**
+     * Returns the x, y, z, w values in an array
+     * @returns {Quaternion}
+     */
+    toArray(): Quaternion;
+    /**
+     * Sets this Quaternion from 4 subsequent elements of an array starting at an offset which defaults to 0
+     * @param {Array} arr
+     * @param {number} offset
+     * @returns {Quaternion}
+     */
+    setFromArray(arr: any[], offset?: number): Quaternion;
+    /**
+     * Compares two Quaternions for equality down to a certain precision
+     * @param {Quaternion} q
+     * @param {number} epsilon
+     * @returns {boolean}
+     */
+    equals(q: Quaternion, epsilon?: number): boolean;
 }
-import { Vector3 } from './vector3.js';
+import { Vector3 } from './Vector3.js';
+import { Matrix4x4 } from './Matrix4x4.js';

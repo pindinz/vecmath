@@ -92,4 +92,4 @@ export class Matrix3x3 {
     fromArray(arr: any, offset?: number): this;
     equals(m: any, epsilon?: number): boolean;
 }
-import { Vector3 } from './vector3.js';
+import { Vector3 } from './Vector3.js';

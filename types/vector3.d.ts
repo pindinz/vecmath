@@ -50,7 +50,7 @@ export class Vector3 {
      */
     constructor(x?: number, y?: number, z?: number);
     elements: Float32Array<ArrayBuffer>;
-    _onChange: any;
+    _onChange: Function | null;
     set x(v: number);
     get x(): number;
     set y(v: number);
@@ -65,7 +65,12 @@ export class Vector3 {
      * @returns
      */
     set(x: number, y: number, z: number): this;
-    onChange(callback: any): this;
+    /**
+     * Set the onChange callback for this Vector3
+     * @param {function} callback
+     * @returns {Vector3}
+     */
+    onChange(callback: Function): Vector3;
     /**
      * Copy the value of another Vector3 into this Vector3
      * @param {Vector3} v
