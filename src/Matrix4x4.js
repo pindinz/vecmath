@@ -144,63 +144,63 @@ export class Matrix4x4 {
    * @returns {Matrix4x4}
    */
   multiplyMatrices(a, b) {
-    const ae = a.elements,
-      be = b.elements,
-      te = this.elements;
+    const ae = a.elements;
+    const be = b.elements;
+    const te = this.elements;
 
-    const a00 = ae[0],
-      a01 = ae[4],
-      a02 = ae[8],
-      a03 = ae[12];
-    const a10 = ae[1],
-      a11 = ae[5],
-      a12 = ae[9],
-      a13 = ae[13];
-    const a20 = ae[2],
-      a21 = ae[6],
-      a22 = ae[10],
-      a23 = ae[14];
-    const a30 = ae[3],
-      a31 = ae[7],
-      a32 = ae[11],
-      a33 = ae[15];
+    const a11 = ae[0],
+      a12 = ae[4],
+      a13 = ae[8],
+      a14 = ae[12];
+    const a21 = ae[1],
+      a22 = ae[5],
+      a23 = ae[9],
+      a24 = ae[13];
+    const a31 = ae[2],
+      a32 = ae[6],
+      a33 = ae[10],
+      a34 = ae[14];
+    const a41 = ae[3],
+      a42 = ae[7],
+      a43 = ae[11],
+      a44 = ae[15];
 
-    const b00 = be[0],
-      b01 = be[4],
-      b02 = be[8],
-      b03 = be[12];
-    const b10 = be[1],
-      b11 = be[5],
-      b12 = be[9],
-      b13 = be[13];
-    const b20 = be[2],
-      b21 = be[6],
-      b22 = be[10],
-      b23 = be[14];
-    const b30 = be[3],
-      b31 = be[7],
-      b32 = be[11],
-      b33 = be[15];
+    const b11 = be[0],
+      b12 = be[4],
+      b13 = be[8],
+      b14 = be[12];
+    const b21 = be[1],
+      b22 = be[5],
+      b23 = be[9],
+      b24 = be[13];
+    const b31 = be[2],
+      b32 = be[6],
+      b33 = be[10],
+      b34 = be[14];
+    const b41 = be[3],
+      b42 = be[7],
+      b43 = be[11],
+      b44 = be[15];
 
-    te[0] = a00 * b00 + a01 * b10 + a02 * b20 + a03 * b30;
-    te[4] = a00 * b01 + a01 * b11 + a02 * b21 + a03 * b31;
-    te[8] = a00 * b02 + a01 * b12 + a02 * b22 + a03 * b32;
-    te[12] = a00 * b03 + a01 * b13 + a02 * b23 + a03 * b33;
+    te[0] = a11 * b11 + a12 * b21 + a13 * b31 + a14 * b41;
+    te[4] = a11 * b12 + a12 * b22 + a13 * b32 + a14 * b42;
+    te[8] = a11 * b13 + a12 * b23 + a13 * b33 + a14 * b43;
+    te[12] = a11 * b14 + a12 * b24 + a13 * b34 + a14 * b44;
 
-    te[1] = a10 * b00 + a11 * b10 + a12 * b20 + a13 * b30;
-    te[5] = a10 * b01 + a11 * b11 + a12 * b21 + a13 * b31;
-    te[9] = a10 * b02 + a11 * b12 + a12 * b22 + a13 * b32;
-    te[13] = a10 * b03 + a11 * b13 + a12 * b23 + a13 * b33;
+    te[1] = a21 * b11 + a22 * b21 + a23 * b31 + a24 * b41;
+    te[5] = a21 * b12 + a22 * b22 + a23 * b32 + a24 * b42;
+    te[9] = a21 * b13 + a22 * b23 + a23 * b33 + a24 * b43;
+    te[13] = a21 * b14 + a22 * b24 + a23 * b34 + a24 * b44;
 
-    te[2] = a20 * b00 + a21 * b10 + a22 * b20 + a23 * b30;
-    te[6] = a20 * b01 + a21 * b11 + a22 * b21 + a23 * b31;
-    te[10] = a20 * b02 + a21 * b12 + a22 * b22 + a23 * b32;
-    te[14] = a20 * b03 + a21 * b13 + a22 * b23 + a23 * b33;
+    te[2] = a31 * b11 + a32 * b21 + a33 * b31 + a34 * b41;
+    te[6] = a31 * b12 + a32 * b22 + a33 * b32 + a34 * b42;
+    te[10] = a31 * b13 + a32 * b23 + a33 * b33 + a34 * b43;
+    te[14] = a31 * b14 + a32 * b24 + a33 * b34 + a34 * b44;
 
-    te[3] = a30 * b00 + a31 * b10 + a32 * b20 + a33 * b30;
-    te[7] = a30 * b01 + a31 * b11 + a32 * b21 + a33 * b31;
-    te[11] = a30 * b02 + a31 * b12 + a32 * b22 + a33 * b32;
-    te[15] = a30 * b03 + a31 * b13 + a32 * b23 + a33 * b33;
+    te[3] = a41 * b11 + a42 * b21 + a43 * b31 + a44 * b41;
+    te[7] = a41 * b12 + a42 * b22 + a43 * b32 + a44 * b42;
+    te[11] = a41 * b13 + a42 * b23 + a43 * b33 + a44 * b43;
+    te[15] = a41 * b14 + a42 * b24 + a43 * b34 + a44 * b44;
 
     return this;
   }
@@ -689,27 +689,27 @@ export class Matrix4x4 {
   }
 
   setFromPerspective(fov, aspect, near, far) {
-    const f = 1 / Math.tan(fov / 2);
-    const nf = 1 / (far - near);
+    const f = 1.0 / Math.tan(fov / 2);
+    const e = this.elements;
 
-    return this.set(
-      f / aspect,
-      0,
-      0,
-      0,
-      0,
-      f,
-      0,
-      0,
-      0,
-      0,
-      (far + near) * nf,
-      -1,
-      0,
-      0,
-      2 * far * near * nf,
-      0
-    );
+    e[0] = f / aspect;
+    e[4] = 0;
+    e[8] = 0;
+    e[12] = 0;
+    e[1] = 0;
+    e[5] = f;
+    e[9] = 0;
+    e[13] = 0;
+    e[2] = 0;
+    e[6] = 0;
+    e[10] = (far + near) / (near - far);
+    e[14] = (2 * far * near) / (near - far);
+    e[3] = 0;
+    e[7] = 0;
+    e[11] = -1;
+    e[15] = 0;
+
+    return this;
   }
 
   setFromOrtho(left, right, bottom, top, near, far) {
@@ -737,27 +737,48 @@ export class Matrix4x4 {
   }
 
   setFromLookAt(eye, target, up) {
-    const z = eye.clone().sub(target).normalize();
-    const x = up.clone().cross(z).normalize();
-    const y = z.clone().cross(x).normalize();
-    return this.set(
-      x.x,
-      y.x,
-      z.x,
-      eye.x,
-      x.y,
-      y.y,
-      z.y,
-      eye.y,
-      x.z,
-      y.z,
-      z.z,
-      eye.z,
-      0,
-      0,
-      0,
-      1
-    ).invert(); // LookAt matrix is inverse of camera transform
+    const forward = eye.clone().sub(target).normalize();
+
+    let right = up.clone().cross(forward);
+    if (right.lengthSq() < 1e-6) {
+      // forward is nearly parallel to up — choose a safe up
+      const absF = forward.clone().abs(); // component-wise abs
+      let tempUp;
+      if (absF.x <= absF.y && absF.x <= absF.z) tempUp = new Vector3(1, 0, 0);
+      else if (absF.y <= absF.x && absF.y <= absF.z)
+        tempUp = new Vector3(0, 1, 0);
+      else tempUp = new Vector3(0, 0, 1);
+
+      right = tempUp.cross(forward).normalize();
+    } else {
+      right.normalize();
+    }
+
+    const camUp = forward.clone().cross(right);
+
+    const e = this.elements;
+
+    e[0] = right.x;
+    e[4] = right.y;
+    e[8] = right.z;
+    e[12] = -right.dot(eye);
+
+    e[1] = camUp.x;
+    e[5] = camUp.y;
+    e[9] = camUp.z;
+    e[13] = -camUp.dot(eye);
+
+    e[2] = forward.x;
+    e[6] = forward.y;
+    e[10] = forward.z;
+    e[14] = -forward.dot(eye);
+
+    e[3] = 0;
+    e[7] = 0;
+    e[11] = 0;
+    e[15] = 1;
+
+    return this;
   }
 
   // Assumes Euler angles in radians, order XYZ

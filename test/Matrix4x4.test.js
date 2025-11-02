@@ -291,14 +291,14 @@ describe('Matrix4x4', () => {
       expect(m.elements[0]).to.be.closeTo(1, EPSILON);
       expect(m.elements[5]).to.be.closeTo(1, EPSILON);
       expect(m.elements[10]).to.be.closeTo(
-        (far + near) / (far - near),
+        (far + near) / (near - far),
         EPSILON
       );
-      expect(m.elements[11]).to.be.closeTo(
-        (2 * far * near) / (far - near),
+      expect(m.elements[11]).to.be.equal(-1);
+      expect(m.elements[14]).to.be.closeTo(
+        (2 * far * near) / (near - far),
         EPSILON
       );
-      expect(m.elements[14]).to.be.equal(-1);
     });
 
     it('should create orthographic projection', () => {
