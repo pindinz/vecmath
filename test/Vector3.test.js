@@ -71,6 +71,10 @@ describe('Vector3', () => {
     expect(changed).to.be.true;
 
     changed = false;
+    v.abs();
+    expect(changed).to.be.true;
+
+    changed = false;
     v.cross(new Vector3());
     expect(changed).to.be.true;
 
@@ -163,6 +167,13 @@ describe('Vector3', () => {
     expect(v1.toArray()).to.deep.equal([NaN, NaN, NaN]);
   });
 
+  it('should set all dimensions to their absolute value', () => {
+    const v1 = new Vector3(-1, -2, -3);
+    const v2 = new Vector3(1, 2, 3);
+    v1.abs();
+    expect(v1.equals(v2)).to.be.true;
+  });
+
   it('should compute dot product', () => {
     const v1 = new Vector3(1, 2, 3);
     const v2 = new Vector3(4, 5, 6);
@@ -183,7 +194,7 @@ describe('Vector3', () => {
     expect(v1.toArray()).to.deep.equal([-3, 6, -3]);
   });
 
-    it('should compute length squared', () => {
+  it('should compute length squared', () => {
     const v1 = new Vector3(1, 2, 3);
     expect(v1.lengthSq()).to.equal(14);
   });

@@ -91,9 +91,9 @@ export class Matrix4x4 {
     setFromTranslation(v: any): Matrix4x4;
     setFromScaling(v: any): Matrix4x4;
     setFromRotationQuaternion(q: any): Matrix4x4;
-    setFromPerspective(fov: any, aspect: any, near: any, far: any): Matrix4x4;
+    setFromPerspective(fov: any, aspect: any, near: any, far: any): this;
     setFromOrtho(left: any, right: any, bottom: any, top: any, near: any, far: any): Matrix4x4;
-    setFromLookAt(eye: any, target: any, up: any): Matrix4x4;
+    setFromLookAt(eye: any, target: any, up: any): this;
     setFromEuler(x: any, y: any, z: any): Matrix4x4;
 }
 import { Vector3 } from './Vector3.js';

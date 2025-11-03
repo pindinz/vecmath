@@ -326,6 +326,39 @@ describe('Matrix4x4', () => {
       expect(out.y).to.be.closeTo(forward.y, EPSILON);
       expect(out.z).to.be.closeTo(forward.z, EPSILON);
     });
+
+    it('should create LookAt matrix and auto-correct the up-vector to point in +x direction', () => {
+      const eye = new Vector3(0, 0, 0);
+      const target = new Vector3(0, 0, -1);
+      const up = new Vector3(0, 0, -0.999999);
+      const m = new Matrix4x4().setFromLookAt(eye, target, up);
+
+      expect(m.elements[1]).to.equal(1);
+      expect(m.elements[5]).to.equal(0);
+      expect(m.elements[9]).to.equal(0);
+    });
+
+    it('should create LookAt matrix and auto-correct the up-vector to point in +y direction', () => {
+      const eye = new Vector3(0, 0, 0);
+      const target = new Vector3(-1, 0, 0);
+      const up = new Vector3(-0.999999, 0, 0);
+      const m = new Matrix4x4().setFromLookAt(eye, target, up);
+
+      expect(m.elements[1]).to.equal(0);
+      expect(m.elements[5]).to.equal(1);
+      expect(m.elements[9]).to.equal(0);
+    });
+
+    it('should create LookAt matrix and auto-correct the up-vector to point in +z direction', () => {
+      const eye = new Vector3(0, 0, 0);
+      const target = new Vector3(0.5, -1, 0);
+      const up = new Vector3(0.5, -0.999999, 0);
+      const m = new Matrix4x4().setFromLookAt(eye, target, up);
+
+      expect(m.elements[1]).to.equal(0);
+      expect(m.elements[5]).to.equal(0);
+      expect(m.elements[9]).to.equal(1);
+    });
   });
 
   describe('Matrix4x4 chainable operations', () => {

@@ -742,12 +742,15 @@ export class Matrix4x4 {
     let right = up.clone().cross(forward);
     if (right.lengthSq() < 1e-6) {
       // forward is nearly parallel to up — choose a safe up
-      const absF = forward.clone().abs(); // component-wise abs
+      const absFwd = forward.clone().abs(); // component-wise abs
       let tempUp;
-      if (absF.x <= absF.y && absF.x <= absF.z) tempUp = new Vector3(1, 0, 0);
-      else if (absF.y <= absF.x && absF.y <= absF.z)
+      if (absFwd.x <= absFwd.y && absFwd.x <= absFwd.z) {
+        tempUp = new Vector3(1, 0, 0);
+      } else if (absFwd.y <= absFwd.x && absFwd.y <= absFwd.z) {
         tempUp = new Vector3(0, 1, 0);
-      else tempUp = new Vector3(0, 0, 1);
+      } else {
+        tempUp = new Vector3(0, 0, 1);
+      }
 
       right = tempUp.cross(forward).normalize();
     } else {

@@ -159,6 +159,15 @@ export class Vector3 {
     }
   }
 
+  abs() {
+    const e = this.elements;
+    e[0] = Math.abs(e[0]);
+    e[1] = Math.abs(e[1]);
+    e[2] = Math.abs(e[2]);
+    this._onChange?.();
+    return this;
+  }
+
   /**
    * Calculate the dot product of this Vector3 and another Vector3
    * a ⋅ b
