@@ -311,31 +311,49 @@ describe('Matrix4x4', () => {
 
     it('should create LookAt matrix', () => {
       const eye = new Vector3(0, 0, 0);
-      const target = new Vector3(0, 0, -1);
-      const up = new Vector3(0, 1, 0);
+      const target = new Vector3(0, 1, 0);
+      const up = new Vector3(0, 0, 1);
       const m = new Matrix4x4().setFromLookAt(eye, target, up);
 
-      // Forward vector should point to -Z
-      const forward = new Vector3(0, 0, -1);
-      const out = new Vector3(
-        -m.elements[8], // because we negated z in set()
-        -m.elements[9],
-        -m.elements[10]
-      );
-      expect(out.x).to.be.closeTo(forward.x, EPSILON);
-      expect(out.y).to.be.closeTo(forward.y, EPSILON);
-      expect(out.z).to.be.closeTo(forward.z, EPSILON);
+      expect(m.equals(new Matrix4x4())).to.be.true;
+    });
+
+    it('should create LookAt matrix that is consistent with euler rotation around the z-axis', () => {
+      const eye = new Vector3(0, 0, 0);
+      const target = new Vector3(-1, 1, 0);
+      const up = new Vector3(0, 0, 1);
+      const m = new Matrix4x4().setFromLookAt(eye, target, up);
+      const e = new Matrix4x4().setFromEuler(0, 0, Math.PI / 4);
+      expect(m.equals(e)).to.be.true;
+    });
+
+    it('should create LookAt matrix that is consistent with euler rotation around the y-axis', () => {
+      const eye = new Vector3(0, 0, 0);
+      const target = new Vector3(0, 1, 0);
+      const up = new Vector3(1, 0, 1);
+      const m = new Matrix4x4().setFromLookAt(eye, target, up);
+      const e = new Matrix4x4().setFromEuler(0, Math.PI / 4, 0);
+      expect(m.equals(e)).to.be.true;
+    });
+
+    it('should create LookAt matrix that is consistent with euler rotation around the x-axis', () => {
+      const eye = new Vector3(0, 0, 0);
+      const target = new Vector3(0, 1, 1);
+      const up = new Vector3(0, 0, 1);
+      const m = new Matrix4x4().setFromLookAt(eye, target, up);
+      const e = new Matrix4x4().setFromEuler( Math.PI / 4, 0, 0);
+      expect(m.equals(e)).to.be.true;
     });
 
     it('should create LookAt matrix and auto-correct the up-vector to point in +x direction', () => {
       const eye = new Vector3(0, 0, 0);
-      const target = new Vector3(0, 0, -1);
-      const up = new Vector3(0, 0, -0.999999);
+      const target = new Vector3(0, 0, 1);
+      const up = new Vector3(0, 0, 0.999999);
       const m = new Matrix4x4().setFromLookAt(eye, target, up);
 
-      expect(m.elements[1]).to.equal(1);
-      expect(m.elements[5]).to.equal(0);
+      expect(m.elements[8]).to.equal(1);
       expect(m.elements[9]).to.equal(0);
+      expect(m.elements[10]).to.equal(0);
     });
 
     it('should create LookAt matrix and auto-correct the up-vector to point in +y direction', () => {
@@ -344,9 +362,9 @@ describe('Matrix4x4', () => {
       const up = new Vector3(-0.999999, 0, 0);
       const m = new Matrix4x4().setFromLookAt(eye, target, up);
 
-      expect(m.elements[1]).to.equal(0);
-      expect(m.elements[5]).to.equal(1);
-      expect(m.elements[9]).to.equal(0);
+      expect(m.elements[8]).to.equal(0);
+      expect(m.elements[9]).to.equal(1);
+      expect(m.elements[10]).to.equal(0);
     });
 
     it('should create LookAt matrix and auto-correct the up-vector to point in +z direction', () => {
@@ -355,9 +373,9 @@ describe('Matrix4x4', () => {
       const up = new Vector3(0.5, -0.999999, 0);
       const m = new Matrix4x4().setFromLookAt(eye, target, up);
 
-      expect(m.elements[1]).to.equal(0);
-      expect(m.elements[5]).to.equal(0);
-      expect(m.elements[9]).to.equal(1);
+      expect(m.elements[8]).to.equal(0);
+      expect(m.elements[9]).to.equal(0);
+      expect(m.elements[10]).to.equal(1);
     });
   });
 

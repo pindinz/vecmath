@@ -737,7 +737,8 @@ export class Matrix4x4 {
   }
 
   setFromLookAt(eye, target, up) {
-    const forward = eye.clone().sub(target).normalize();
+    //const forward = eye.clone().sub(target).normalize();
+    const forward = target.clone().sub(eye).normalize();
 
     let right = up.clone().cross(forward);
     if (right.lengthSq() < 1e-6) {
@@ -757,28 +758,22 @@ export class Matrix4x4 {
       right.normalize();
     }
 
-    const camUp = forward.clone().cross(right);
+    const objUp = forward.clone().cross(right);
 
     const e = this.elements;
 
-    e[0] = right.x;
-    e[4] = right.y;
-    e[8] = right.z;
-    e[12] = -right.dot(eye);
+    e[0] = -right.x;
+    e[1] = -right.y;
+    e[2] = -right.z;
+    e[4] = forward.x;
+    e[5] = forward.y;
+    e[6] = forward.z;
+    e[8] = objUp.x;
+    e[9] = objUp.y;
+    e[10] = objUp.z;
 
-    e[1] = camUp.x;
-    e[5] = camUp.y;
-    e[9] = camUp.z;
-    e[13] = -camUp.dot(eye);
-
-    e[2] = forward.x;
-    e[6] = forward.y;
-    e[10] = forward.z;
-    e[14] = -forward.dot(eye);
-
-    e[3] = 0;
-    e[7] = 0;
-    e[11] = 0;
+    e[3] = e[7] = e[11] = 0;
+    e[12] = e[13] = e[14] = 0;
     e[15] = 1;
 
     return this;
