@@ -1,10 +1,11 @@
+import { Observable } from 'omnibus';
 import { Matrix4x4 } from './Matrix4x4.js';
 import { Vector3 } from './Vector3.js';
 
 /**
  * Class representing a quaternion
  */
-export class Quaternion {
+export class Quaternion extends Observable {
   /**
    * Create a quaternion
    * @param {number} x
@@ -13,8 +14,8 @@ export class Quaternion {
    * @param {number} w
    */
   constructor(x = 0, y = 0, z = 0, w = 1) {
+    super();
     this.elements = new Float32Array([x, y, z, w]);
-    this._onChange = null;
   }
 
   get x() {
@@ -32,19 +33,19 @@ export class Quaternion {
 
   set x(v) {
     this.elements[0] = v;
-    this._onChange?.();
+    this._markChanged();
   }
   set y(v) {
     this.elements[1] = v;
-    this._onChange?.();
+    this._markChanged();
   }
   set z(v) {
     this.elements[2] = v;
-    this._onChange?.();
+    this._markChanged();
   }
   set w(v) {
     this.elements[3] = v;
-    this._onChange?.();
+    this._markChanged();
   }
 
   /**
@@ -61,17 +62,7 @@ export class Quaternion {
     e[1] = y;
     e[2] = z;
     e[3] = w;
-    this._onChange?.();
-    return this;
-  }
-
-  /**
-   * Set the onChange callback for this Quaternion
-   * @param {function} callback
-   * @returns {Quaternion}
-   */
-  onChange(callback) {
-    this._onChange = callback;
+    this._markChanged();
     return this;
   }
 
@@ -82,7 +73,7 @@ export class Quaternion {
    */
   copy(q) {
     this.elements.set(q.elements);
-    this._onChange?.();
+    this._markChanged();
     return this;
   }
 
@@ -111,7 +102,7 @@ export class Quaternion {
     e[0] = -e[0];
     e[1] = -e[1];
     e[2] = -e[2];
-    this._onChange?.();
+    this._markChanged();
     return this;
   }
 
@@ -125,7 +116,7 @@ export class Quaternion {
     e[1] = -e[1];
     e[2] = -e[2];
     e[3] = -e[3];
-    this._onChange?.();
+    this._markChanged();
     return this;
   }
 
@@ -171,7 +162,7 @@ export class Quaternion {
       e[1] *= inv;
       e[2] *= inv;
       e[3] *= inv;
-      this._onChange?.();
+      this._markChanged();
     }
     return this;
   }
@@ -190,7 +181,7 @@ export class Quaternion {
       e[1] = -e[1] * inv;
       e[2] = -e[2] * inv;
       e[3] = e[3] * inv;
-      this._onChange?.();
+      this._markChanged();
     }
     return this;
   }
@@ -217,7 +208,7 @@ export class Quaternion {
     ae[1] = aw * by - ax * bz + ay * bw + az * bx;
     ae[2] = aw * bz + ax * by - ay * bx + az * bw;
     ae[3] = aw * bw - ax * bx - ay * by - az * bz;
-    this._onChange?.();
+    this._markChanged();
     return this;
   }
 
@@ -246,7 +237,7 @@ export class Quaternion {
     e[1] = aw * by - ax * bz + ay * bw + az * bx;
     e[2] = aw * bz + ax * by - ay * bx + az * bw;
     e[3] = aw * bw - ax * bx - ay * by - az * bz;
-    this._onChange?.();
+    this._markChanged();
     return this;
   }
 
@@ -317,7 +308,7 @@ export class Quaternion {
       e[1] = e[1] * (1 - t) + by * t;
       e[2] = e[2] * (1 - t) + bz * t;
       e[3] = e[3] * (1 - t) + bw * t;
-      this._onChange?.();
+      this._markChanged();
       return this.normalize();
     }
 
@@ -328,7 +319,7 @@ export class Quaternion {
     e[1] = e[1] * ratioA + by * ratioB;
     e[2] = e[2] * ratioA + bz * ratioB;
     e[3] = e[3] * ratioA + bw * ratioB;
-    this._onChange?.();
+    this._markChanged();
     return this;
   }
 
@@ -451,7 +442,7 @@ export class Quaternion {
     e[1] = arr[offset + 1];
     e[2] = arr[offset + 2];
     e[3] = arr[offset + 3];
-    this._onChange?.();
+    this._markChanged();
     return this;
   }
 

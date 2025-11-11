@@ -1,7 +1,9 @@
+import { Observable } from 'omnibus';
+
 /**
  * Class representing a vector in 3D space
  */
-export class Vector3 {
+export class Vector3 extends Observable {
   /**
    * Create a Vector3
    * @param {number} x
@@ -9,8 +11,8 @@ export class Vector3 {
    * @param {number} z
    */
   constructor(x = 0, y = 0, z = 0) {
+    super();
     this.elements = new Float32Array([x, y, z]);
-    this._onChange = null;
   }
 
   get x() {
@@ -25,15 +27,15 @@ export class Vector3 {
 
   set x(v) {
     this.elements[0] = v;
-    this._onChange?.();
+    this._markChanged();
   }
   set y(v) {
     this.elements[1] = v;
-    this._onChange?.();
+    this._markChanged();
   }
   set z(v) {
     this.elements[2] = v;
-    this._onChange?.();
+    this._markChanged();
   }
 
   /**
@@ -47,17 +49,7 @@ export class Vector3 {
     this.elements[0] = x;
     this.elements[1] = y;
     this.elements[2] = z;
-    this._onChange?.();
-    return this;
-  }
-
-  /**
-   * Set the onChange callback for this Vector3
-   * @param {function} callback
-   * @returns {Vector3}
-   */
-  onChange(callback) {
-    this._onChange = callback;
+    this._markChanged();
     return this;
   }
 
@@ -68,7 +60,7 @@ export class Vector3 {
    */
   copy(v) {
     this.elements.set(v.elements);
-    this._onChange?.();
+    this._markChanged();
     return this;
   }
 
@@ -92,7 +84,7 @@ export class Vector3 {
     e[0] += f[0];
     e[1] += f[1];
     e[2] += f[2];
-    this._onChange?.();
+    this._markChanged();
     return this;
   }
 
@@ -108,7 +100,7 @@ export class Vector3 {
     e[0] += f[0] * s;
     e[1] += f[1] * s;
     e[2] += f[2] * s;
-    this._onChange?.();
+    this._markChanged();
     return this;
   }
 
@@ -124,7 +116,7 @@ export class Vector3 {
     e[0] -= f[0];
     e[1] -= f[1];
     e[2] -= f[2];
-    this._onChange?.();
+    this._markChanged();
     return this;
   }
 
@@ -139,7 +131,22 @@ export class Vector3 {
     e[0] *= s;
     e[1] *= s;
     e[2] *= s;
-    this._onChange?.();
+    this._markChanged();
+    return this;
+  }
+
+  /**
+   * Multiply this vector element-wise with another vector (Hadamard product)
+   * @param {Vector3} v
+   * @returns {Vector3}
+   */
+  multiply(v) {
+    const te = this.elements;
+    const ve = v.elements;
+    te[0] *= ve[0];
+    te[1] *= ve[1];
+    te[2] *= ve[2];
+    this._markChanged();
     return this;
   }
 
@@ -164,7 +171,7 @@ export class Vector3 {
     e[0] = Math.abs(e[0]);
     e[1] = Math.abs(e[1]);
     e[2] = Math.abs(e[2]);
-    this._onChange?.();
+    this._markChanged();
     return this;
   }
 
@@ -196,7 +203,7 @@ export class Vector3 {
     this.elements[0] = ay * bz - az * by;
     this.elements[1] = az * bx - ax * bz;
     this.elements[2] = ax * by - ay * bx;
-    this._onChange?.();
+    this._markChanged();
     return this;
   }
 
@@ -216,7 +223,7 @@ export class Vector3 {
     this.elements[0] = ay * bz - az * by;
     this.elements[1] = az * bx - ax * bz;
     this.elements[2] = ax * by - ay * bx;
-    this._onChange?.();
+    this._markChanged();
     return this;
   }
 
@@ -281,7 +288,7 @@ export class Vector3 {
     e[0] = -e[0];
     e[1] = -e[1];
     e[2] = -e[2];
-    this._onChange?.();
+    this._markChanged();
     return this;
   }
 
@@ -300,7 +307,7 @@ export class Vector3 {
     this.elements[0] = (e[0] * x + e[4] * y + e[8] * z + e[12]) * w;
     this.elements[1] = (e[1] * x + e[5] * y + e[9] * z + e[13]) * w;
     this.elements[2] = (e[2] * x + e[6] * y + e[10] * z + e[14]) * w;
-    this._onChange?.();
+    this._markChanged();
     return this;
   }
 
@@ -336,7 +343,7 @@ export class Vector3 {
     this.elements[0] = arr[offset];
     this.elements[1] = arr[offset + 1];
     this.elements[2] = arr[offset + 2];
-    this._onChange?.();
+    this._markChanged();
     return this;
   }
 

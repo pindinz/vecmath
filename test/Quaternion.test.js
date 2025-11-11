@@ -22,7 +22,6 @@ describe('Quaternion', () => {
     };
     const q = new Quaternion();
     q.onChange(handleOnChange);
-    expect(q._onChange).to.be.a('function');
 
     changed = false;
     q.x = 1;

@@ -50,7 +50,6 @@ export class Vector3 {
      */
     constructor(x?: number, y?: number, z?: number);
     elements: Float32Array<ArrayBuffer>;
-    _onChange: Function | null;
     set x(v: number);
     get x(): number;
     set y(v: number);
@@ -65,12 +64,6 @@ export class Vector3 {
      * @returns
      */
     set(x: number, y: number, z: number): this;
-    /**
-     * Set the onChange callback for this Vector3
-     * @param {function} callback
-     * @returns {Vector3}
-     */
-    onChange(callback: Function): Vector3;
     /**
      * Copy the value of another Vector3 into this Vector3
      * @param {Vector3} v
@@ -110,6 +103,7 @@ export class Vector3 {
      * @returns {Vector3}
      */
     multiplyScalar(s: Vector3): Vector3;
+    multiplyComponents(v: any): this;
     /**
      * Scale (divide) this Vector3 by a factor
      * 1/s * v
@@ -118,6 +112,7 @@ export class Vector3 {
      * @throws {RangeError} when trying to divide by zero
      */
     divideScalar(s: Vector3): Vector3;
+    abs(): this;
     /**
      * Calculate the dot product of this Vector3 and another Vector3
      * a ⋅ b

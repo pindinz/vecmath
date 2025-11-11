@@ -32,7 +32,6 @@ export class Quaternion {
      */
     constructor(x?: number, y?: number, z?: number, w?: number);
     elements: Float32Array<ArrayBuffer>;
-    _onChange: Function | null;
     set x(v: number);
     get x(): number;
     set y(v: number);
@@ -50,12 +49,6 @@ export class Quaternion {
      * @returns {Quaternion}
      */
     set(x: number, y: number, z: number, w: number): Quaternion;
-    /**
-     * Set the onChange callback for this Quaternion
-     * @param {function} callback
-     * @returns {Quaternion}
-     */
-    onChange(callback: Function): Quaternion;
     /**
      * Copy the value of another Quaternion into this Quaternion
      * @param {Quaternion} q

@@ -31,7 +31,6 @@ describe('Vector3', () => {
     };
     const v = new Vector3();
     v.onChange(handleOnChange);
-    expect(v._onChange).to.be.a('function');
 
     changed = false;
     v.x = 1;
@@ -64,6 +63,10 @@ describe('Vector3', () => {
 
     changed = false;
     v.multiplyScalar(5);
+    expect(changed).to.be.true;
+
+    changed = false;
+    v.multiply(new Vector3(1, 2, 3));
     expect(changed).to.be.true;
 
     changed = false;
@@ -157,6 +160,12 @@ describe('Vector3', () => {
     const v1 = new Vector3(1, 2, 3);
     v1.multiplyScalar(5);
     expect(v1.toArray()).to.deep.equal([5, 10, 15]);
+  });
+
+  it('should multiply a vector by another vector component-wise', () => {
+    const v1 = new Vector3(1, 2, 3);
+    v1.multiply(new Vector3(4, 5, 6));
+    expect(v1.toArray()).to.deep.equal([4, 10, 18]);
   });
 
   it('should divide a vector by a scalar', () => {
